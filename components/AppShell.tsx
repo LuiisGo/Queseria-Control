@@ -39,7 +39,7 @@ const adminNav = [
   { href: "/admin/ventas", label: "Ventas", icon: ShoppingCart },
   { href: "/admin/distribuidores", label: "Distribuidores", icon: Store },
   { href: "/admin/creditos", label: "Créditos", icon: CreditCard },
-  { href: "/admin/mermas", label: "Mermas", icon: ClipboardList },
+  { href: "/admin/mermas", label: "Pérdidas", icon: ClipboardList },
   { href: "/admin/reportes", label: "Reportes", icon: ReceiptText },
   { href: "/admin/configuracion", label: "Config", icon: Settings }
 ];
@@ -48,7 +48,7 @@ const storeNav = [
   { href: "/tienda/inicio", label: "Inicio", icon: Home },
   { href: "/tienda/venta", label: "Venta", icon: ShoppingCart, permission: "can_register_sales" },
   { href: "/tienda/inventario", label: "Inventario", icon: Boxes, permission: "can_view_inventory" },
-  { href: "/tienda/merma", label: "Merma", icon: ClipboardList, permission: "can_register_waste" },
+  { href: "/tienda/merma", label: "Pérdida", icon: ClipboardList, permission: "can_register_waste" },
   { href: "/tienda/cierre-dia", label: "Cierre", icon: ReceiptText, permission: "can_view_daily_summary" },
   { href: "/tienda/entrada", label: "Producción", icon: Wheat, permission: "can_register_entries", centralOnly: true },
   { href: "/tienda/salida", label: "Envíos", icon: Truck, permission: "can_register_transfers", centralOnly: true }

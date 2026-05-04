@@ -7,7 +7,7 @@ function registerWaste(payload) {
   var row = { ID: nextId("Waste", "WST"), Date: nowIso(), User_ID: user.ID, Branch_ID: payload.branchId, Product_ID: payload.productId, Lot_ID: payload.lotId || "", Quantity: Number(payload.quantity), Reason: payload.reason, Notes: payload.notes || "" };
   appendRow("Waste", row);
   logAudit(user, "REGISTER_WASTE", "Waste", row.ID, null, row, "");
-  return success(row, "Merma registrada.");
+  return success(row, "Pérdida registrada.");
 }
 
 function listWaste(payload) {

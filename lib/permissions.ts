@@ -7,7 +7,7 @@ export const permissionLabels: Record<PermissionKey, string> = {
   can_register_entries: "Registrar producción / entradas",
   can_register_exits: "Registrar salidas",
   can_register_transfers: "Enviar a tiendas",
-  can_register_waste: "Registrar merma",
+  can_register_waste: "Registrar pérdida",
   can_register_returns: "Registrar devoluciones",
   can_apply_discounts: "Aplicar descuentos",
   can_view_daily_summary: "Ver resumen y cierre del día",

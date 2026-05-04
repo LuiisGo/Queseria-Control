@@ -9,7 +9,7 @@
 - Apps Script valida usuario activo, rol, permisos y ubicación asignada.
 - Tienda no puede entrar a `/admin`.
 - Los precios se resuelven desde tablas oficiales.
-- Ventas y mermas validan stock disponible salvo que `allow_negative_stock=true`.
+- Ventas y pérdidas validan stock disponible salvo que `allow_negative_stock=true`.
 - Acciones importantes escriben en `Audit_Log`.
 - Cookie de sesión HTTP-only firmada con HMAC.
 

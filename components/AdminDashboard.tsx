@@ -41,7 +41,7 @@ export function AdminDashboard() {
         <StatCard label="Ganancia estimada" value={formatCurrency(data.kpis.estimatedProfit)} icon={PackageCheck} />
         <StatCard label="Créditos pendientes" value={formatCurrency(data.kpis.pendingCredits)} icon={CreditCard} />
         <StatCard label="Stock bajo" value={String(data.kpis.lowStockCount)} icon={AlertTriangle} />
-        <StatCard label="Mermas" value={`${data.kpis.wasteTotal} uds`} icon={Boxes} />
+        <StatCard label="Pérdidas" value={`${data.kpis.wasteTotal} uds`} icon={Boxes} />
         <StatCard label="Producción" value={`${data.kpis.productionTotal} uds`} icon={Wheat} />
         <StatCard label="Envíos activos" value="1" icon={Truck} />
       </section>

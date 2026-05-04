@@ -456,7 +456,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (!user) return error("Sesión requerida.");
         const branchId = String(payload.branchId || user.assignedBranches[0]);
         assertAssignedBranch(user, branchId);
-        if (user.role === "Tienda" && !user.permissions.can_register_waste) return error("No tiene permiso para registrar merma.");
+        if (user.role === "Tienda" && !user.permissions.can_register_waste) return error("No tiene permiso para registrar pérdida.");
         const product = getProduct(String(payload.productId));
         if (!product) return error("Producto no encontrado.");
         const quantity = Number(payload.quantity || 0);
@@ -475,7 +475,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           notes: String(payload.notes || "")
         };
         demoWaste.push(record);
-        return success(record, "Merma registrada.");
+        return success(record, "Pérdida registrada.");
       }
       case "REGISTER_RETURN":
         return success({ id: nextId("RET", 0), ...payload, date: todayIso() }, "Devolución registrada.");

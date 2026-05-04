@@ -246,7 +246,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     transformSubmit: (values) => ({ ...values, amount: Number(values.amount) })
   },
   mermas: {
-    title: "Mermas",
+    title: "Pérdidas",
     description: "Producto vencido, dañado, perdido o devolución no utilizable, con descuento de inventario.",
     endpoint: "/api/waste",
     columns: [
@@ -268,7 +268,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   reportes: {
     title: "Reportes",
-    description: "Salida CSV para ventas, inventario, producción, envíos, mermas, créditos y reporte general.",
+    description: "Salida CSV para ventas, inventario, producción, envíos, pérdidas, créditos y reporte general.",
     endpoint: "/api/sales",
     columns: [
       { key: "id", label: "Venta" },

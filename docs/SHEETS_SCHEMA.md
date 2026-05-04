@@ -22,7 +22,7 @@ Una sola Spreadsheet con pestañas por módulo.
 | `Sale_Items` | Productos vendidos. |
 | `Credits` | Cuentas por cobrar. |
 | `Credit_Payments` | Abonos a créditos. |
-| `Waste` | Mermas. |
+| `Waste` | Pérdidas. |
 | `Returns` | Devoluciones. |
 | `Stock_Adjustments` | Ajustes manuales Admin. |
 | `Correction_Requests` | Solicitudes de corrección. |

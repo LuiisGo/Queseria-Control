@@ -1,6 +1,6 @@
 # Quesería San Antonio ERP-Lite
 
-Sistema interno para controlar productos, ubicaciones, inventario, producción, envíos, ventas, distribuidores, créditos, mermas, reportes y cierre diario.
+Sistema interno para controlar productos, ubicaciones, inventario, producción, envíos, ventas, distribuidores, créditos, pérdidas, reportes y cierre diario.
 
 ## Stack
 

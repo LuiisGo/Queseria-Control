@@ -205,7 +205,7 @@ export function StoreTransferFlow() {
       {!isCentral && state.summary ? (
         <section className="panel p-4">
           <h2 className="text-lg font-semibold">Envíos solo desde Central</h2>
-          <p className="mt-2 text-sm text-black/60">Las subsucursales solo venden y registran mermas. No necesitan recibir producto manualmente.</p>
+          <p className="mt-2 text-sm text-black/60">Las subsucursales solo venden y registran pérdidas. No necesitan recibir producto manualmente.</p>
         </section>
       ) : null}
       {isCentral || !state.summary ? (
@@ -278,7 +278,7 @@ export function StoreWasteFlow() {
   const product = state.products.find((item) => item.id === productId);
   const inventory = state.inventory.find((item) => item.productId === productId && item.branchId === branchId);
   const stock = inventory?.quantity || 0;
-  if (state.user && !hasPermission(state.user, "can_register_waste")) return <BlockedFlow title="Registrar merma" permission="can_register_waste" />;
+  if (state.user && !hasPermission(state.user, "can_register_waste")) return <BlockedFlow title="Registrar pérdida" permission="can_register_waste" />;
 
   async function submit() {
     if (!product || quantity <= 0) return toast.error("Elige producto y cantidad.");
@@ -287,7 +287,7 @@ export function StoreWasteFlow() {
     const response = await postJson("/api/waste", { branchId, productId, quantity, reason });
     setSaving(false);
     if (response.success) {
-      toast.success("Merma guardada.");
+      toast.success("Pérdida guardada.");
       setProductId("");
       setQuantity(1);
       setReason("Vencido");
@@ -296,7 +296,7 @@ export function StoreWasteFlow() {
   }
 
   return (
-    <EasyShell title="Registrar merma" subtitle="Producto vencido, dañado o perdido.">
+    <EasyShell title="Registrar pérdida" subtitle="Producto vencido, dañado o perdido.">
       <Step title="1. ¿Qué producto se perdió o dañó?">
         <ProductGrid products={state.products} inventory={state.inventory} branchId={branchId} selectedId={productId} onSelect={(id) => { setProductId(id); setQuantity(1); }} />
       </Step>
@@ -307,9 +307,9 @@ export function StoreWasteFlow() {
         <ButtonGroup options={wasteReasons} value={reason} onChange={setReason} />
       </Step>
       <ConfirmBox
-        title="Confirmar merma"
+        title="Confirmar pérdida"
         lines={[product ? `${quantity} ${product.name}` : "Elige producto", `Motivo: ${reason}`, `Ubicación: ${state.summary?.branchName || ""}`]}
-        action="Guardar merma"
+        action="Guardar pérdida"
         disabled={!product || quantity > stock || saving}
         onConfirm={submit}
       />

@@ -12,7 +12,7 @@ import type { PermissionKey, SessionUser, StoreSummary } from "@/types";
 const actions = [
   { href: "/tienda/venta", label: "Vender", icon: ShoppingCart, permission: "can_register_sales" },
   { href: "/tienda/inventario", label: "Ver inventario", icon: Boxes, permission: "can_view_inventory" },
-  { href: "/tienda/merma", label: "Registrar merma", icon: AlertTriangle, permission: "can_register_waste" },
+  { href: "/tienda/merma", label: "Registrar pérdida", icon: AlertTriangle, permission: "can_register_waste" },
   { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText, permission: "can_view_daily_summary" },
   { href: "/tienda/entrada", label: "Registrar producción", icon: PackagePlus, centralOnly: true, permission: "can_register_entries" },
   { href: "/tienda/salida", label: "Enviar a tienda", icon: Truck, centralOnly: true, permission: "can_register_transfers" }
