@@ -1,0 +1,14 @@
+.DS_Store
+node_modules
+.next
+.netlify
+out
+dist
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
