@@ -45,8 +45,8 @@ const adminNav = [
 const storeNav = [
   { href: "/tienda/inicio", label: "Inicio", icon: Home },
   { href: "/tienda/venta", label: "Venta", icon: ShoppingCart },
-  { href: "/tienda/entrada", label: "Entrada", icon: Package },
-  { href: "/tienda/salida", label: "Salida", icon: Truck },
+  { href: "/tienda/entrada", label: "Entrada Central", icon: Package },
+  { href: "/tienda/salida", label: "Envíos", icon: Truck },
   { href: "/tienda/inventario", label: "Inventario", icon: Boxes },
   { href: "/tienda/cierre-dia", label: "Cierre", icon: ReceiptText }
 ];

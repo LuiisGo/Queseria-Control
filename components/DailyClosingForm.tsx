@@ -11,12 +11,11 @@ export function DailyClosingForm() {
   const [values, setValues] = useState({
     cashReported: "0",
     transferReported: "0",
-    cardReported: "0",
     creditReported: "0",
     notes: ""
   });
   const systemTotal = summary?.salesToday || 0;
-  const reported = Number(values.cashReported) + Number(values.transferReported) + Number(values.cardReported) + Number(values.creditReported);
+  const reported = Number(values.cashReported) + Number(values.transferReported) + Number(values.creditReported);
   const difference = reported - systemTotal;
 
   useEffect(() => {
@@ -37,7 +36,6 @@ export function DailyClosingForm() {
         systemTotal,
         cashReported: Number(values.cashReported),
         transferReported: Number(values.transferReported),
-        cardReported: Number(values.cardReported),
         creditReported: Number(values.creditReported),
         notes: values.notes
       })
@@ -75,11 +73,10 @@ export function DailyClosingForm() {
           <Calculator className="h-5 w-5" />
           <h2 className="font-semibold">Montos reportados</h2>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {[
             ["cashReported", "Efectivo"],
             ["transferReported", "Transferencia"],
-            ["cardReported", "Tarjeta"],
             ["creditReported", "Crédito"]
           ].map(([key, label]) => (
             <label key={key}>

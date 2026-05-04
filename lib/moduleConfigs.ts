@@ -137,15 +137,15 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "productName", label: "Producto" },
       { key: "branchName", label: "Destino" },
       { key: "quantity", label: "Cantidad" },
-      { key: "lotNumber", label: "Lote" },
+      { key: "lotNumber", label: "Código de lote" },
       { key: "expiresAt", label: "Vence" }
     ],
     fields: [
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
-      { name: "branchId", label: "Destino", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
+      { name: "branchId", label: "Destino", type: "select", optionSource: "branches", optionFilter: "central", defaultValue: "BR001", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "unitCost", label: "Costo unitario", type: "number" },
-      { name: "lotNumber", label: "Lote" },
+      { name: "lotNumber", label: "Código de lote" },
       { name: "expiresAt", label: "Vencimiento", type: "date" },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
@@ -163,8 +163,8 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "originBranchId", label: "Sale de", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
-      { name: "destinationBranchId", label: "Enviar a", type: "select", optionSource: "branches", defaultValue: "BR002", required: true },
+      { name: "originBranchId", label: "Sale de", type: "select", optionSource: "branches", optionFilter: "central", defaultValue: "BR001", required: true },
+      { name: "destinationBranchId", label: "Enviar a", type: "select", optionSource: "branches", optionFilter: "subbranches", defaultValue: "BR002", required: true },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "notes", label: "Notas", type: "textarea" }
@@ -189,12 +189,12 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "status", label: "Estado" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR002", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
       { name: "customerType", label: "Cliente", type: "select", options: ["Cliente general", "Distribuidor/mayorista"], required: true },
       { name: "distributorId", label: "Distribuidor", type: "select", optionSource: "distributors" },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
-      { name: "paymentMethod", label: "Pago", type: "select", options: ["Efectivo", "Transferencia", "Tarjeta", "Crédito", "Otro"], required: true },
+      { name: "paymentMethod", label: "Pago", type: "select", options: ["Efectivo", "Transferencia", "Crédito"], required: true },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
     transformSubmit: (values) => ({
@@ -240,7 +240,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     fields: [
       { name: "creditId", label: "Crédito", type: "select", optionSource: "credits", required: true },
       { name: "amount", label: "Monto", type: "number", required: true },
-      { name: "paymentMethod", label: "Método", type: "select", options: ["Efectivo", "Transferencia", "Tarjeta", "Otro"], required: true },
+      { name: "paymentMethod", label: "Método", type: "select", options: ["Efectivo", "Transferencia"], required: true },
       { name: "note", label: "Nota", type: "textarea" }
     ],
     transformSubmit: (values) => ({ ...values, amount: Number(values.amount) })
@@ -258,7 +258,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR002", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "reason", label: "Motivo", type: "select", options: ["Vencido", "Dañado", "Pérdida", "Devolución no utilizable", "Otro"], required: true },

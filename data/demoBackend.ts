@@ -8,6 +8,7 @@ import {
   demoCredits,
   demoDistributors,
   demoInventory,
+  demoLots,
   demoPasswords,
   demoProducts,
   demoProduction,
@@ -16,6 +17,13 @@ import {
   demoUsers,
   demoWaste
 } from "@/data/mockData";
+
+type LotAllocation = {
+  lotId: string;
+  lotNumber: string;
+  expiresAt?: string;
+  quantity: number;
+};
 
 function nextId(prefix: string, currentLength: number) {
   return `${prefix}${String(currentLength + 1).padStart(3, "0")}`;
@@ -66,14 +74,73 @@ function getInventory(productId: string, branchId: string) {
   return item;
 }
 
-function applyStock(productId: string, branchId: string, quantityDelta: number) {
+function availableLots(productId: string, branchId: string) {
+  return demoLots
+    .filter((lot) => lot.productId === productId && lot.branchId === branchId && lot.quantity > 0)
+    .sort((a, b) => {
+      const aDate = a.expiresAt ? new Date(a.expiresAt).getTime() : Number.MAX_SAFE_INTEGER;
+      const bDate = b.expiresAt ? new Date(b.expiresAt).getTime() : Number.MAX_SAFE_INTEGER;
+      if (aDate !== bDate) return aDate - bDate;
+      return a.lotNumber.localeCompare(b.lotNumber);
+    });
+}
+
+function addLotStock(productId: string, branchId: string, quantity: number, lotNumber?: string, expiresAt?: string, notes?: string) {
+  if (!lotNumber) return;
+  const item = getInventory(productId, branchId);
+  let lot = demoLots.find((candidate) => candidate.productId === productId && candidate.branchId === branchId && candidate.lotNumber === lotNumber);
+  if (!lot) {
+    lot = {
+      id: nextId("LOT", demoLots.length),
+      productId,
+      branchId,
+      lotNumber,
+      expiresAt,
+      quantity: 0,
+      notes
+    };
+    demoLots.push(lot);
+    item.lots.push(lot);
+  }
+  lot.quantity += quantity;
+  lot.expiresAt = expiresAt || lot.expiresAt;
+  lot.notes = notes || lot.notes;
+}
+
+function consumeLotsFifo(productId: string, branchId: string, quantity: number): LotAllocation[] {
+  let remaining = quantity;
+  const allocations: LotAllocation[] = [];
+  for (const lot of availableLots(productId, branchId)) {
+    if (remaining <= 0) break;
+    const used = Math.min(lot.quantity, remaining);
+    lot.quantity -= used;
+    remaining -= used;
+    allocations.push({
+      lotId: lot.id,
+      lotNumber: lot.lotNumber,
+      expiresAt: lot.expiresAt,
+      quantity: used
+    });
+  }
+  if (remaining > 0) {
+    throw new Error(`No hay lotes suficientes para ${getProduct(productId)?.name || productId} en ${getBranch(branchId)?.name || branchId}.`);
+  }
+  return allocations;
+}
+
+function applyStock(productId: string, branchId: string, quantityDelta: number, lotData?: { lotNumber?: string; expiresAt?: string; notes?: string }) {
   const item = getInventory(productId, branchId);
   if (item.quantity + quantityDelta < 0) {
     throw new Error(`Stock insuficiente para ${item.productName} en ${item.branchName}.`);
   }
+  const allocations = quantityDelta < 0 ? consumeLotsFifo(productId, branchId, Math.abs(quantityDelta)) : [];
   item.quantity += quantityDelta;
+  if (quantityDelta > 0) {
+    addLotStock(productId, branchId, quantityDelta, lotData?.lotNumber, lotData?.expiresAt, lotData?.notes);
+  }
+  item.lots = demoLots.filter((lot) => lot.productId === productId && lot.branchId === branchId && lot.quantity > 0);
   item.updatedAt = todayIso();
-  return item;
+  return allocations;
 }
 
 function normalizeItems(items: SaleItem[] = [], branchId: string, customerType?: string, distributorId?: string) {
@@ -128,7 +195,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           username,
           role,
           permissions: role === "Tienda" ? allStorePermissions : emptyPermissions,
-          assignedBranches: Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : ["BR002"],
+          assignedBranches: Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : ["BR001"],
           active: true
         };
         demoUsers.push(user);
@@ -194,7 +261,12 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           }))
         );
       case "LIST_INVENTORY":
-        return success(listBySession(demoInventory, payload));
+        return success(
+          listBySession(demoInventory, payload).map((item) => ({
+            ...item,
+            lots: demoLots.filter((lot) => lot.productId === item.productId && lot.branchId === item.branchId && lot.quantity > 0)
+          }))
+        );
       case "REGISTER_PRODUCTION": {
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
@@ -204,7 +276,13 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (!product) return error("Producto no encontrado.");
         const quantity = Number(payload.quantity || 0);
         if (quantity <= 0) return error("Cantidad inválida.");
-        applyStock(product.id, branchId, quantity);
+        const lotNumber = String(payload.lotNumber || "").trim();
+        if (!lotNumber) return error("Código de lote es obligatorio.");
+        applyStock(product.id, branchId, quantity, {
+          lotNumber,
+          expiresAt: String(payload.expiresAt || ""),
+          notes: String(payload.notes || "")
+        });
         const record = {
           id: nextId("PROD", demoProduction.length),
           date: todayIso(),
@@ -215,7 +293,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           productName: product.name,
           quantity,
           unitCost: Number(payload.unitCost || product.productionCost),
-          lotNumber: String(payload.lotNumber || ""),
+          lotNumber,
           expiresAt: String(payload.expiresAt || ""),
           notes: String(payload.notes || "")
         };
@@ -228,9 +306,16 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const originBranchId = String(payload.originBranchId || "BR001");
         const destinationBranchId = String(payload.destinationBranchId || "");
         const items = normalizeItems((payload.items as SaleItem[]) || [], originBranchId);
-        items.forEach((item) => {
-          applyStock(item.productId, originBranchId, -item.quantity);
-          applyStock(item.productId, destinationBranchId, item.quantity);
+        const transferItems = items.map((item) => {
+          const lotsUsed = applyStock(item.productId, originBranchId, -item.quantity);
+          lotsUsed.forEach((lot) => {
+            applyStock(item.productId, destinationBranchId, lot.quantity, {
+              lotNumber: lot.lotNumber,
+              expiresAt: lot.expiresAt,
+              notes: `Envío desde ${getBranch(originBranchId)?.name || originBranchId}`
+            });
+          });
+          return { ...item, lotsUsed, lotId: lotsUsed[0]?.lotId };
         });
         const transfer = {
           id: nextId("TRF", demoTransfers.length),
@@ -240,7 +325,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           originBranchName: getBranch(originBranchId)?.name || originBranchId,
           destinationBranchId,
           destinationBranchName: getBranch(destinationBranchId)?.name || destinationBranchId,
-          items,
+          items: transferItems,
           status: "Registrado" as const,
           notes: String(payload.notes || "")
         };
@@ -254,12 +339,17 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (user.role === "Tienda" && !user.assignedBranches.includes(branchId)) return error("Ubicación no asignada.");
         if (user.role === "Tienda" && !user.permissions.can_register_sales) return error("No tiene permiso para registrar ventas.");
         const customerType = (payload.customerType as string) || "Cliente general";
+        const paymentMethod = String(payload.paymentMethod || "Efectivo");
+        if (!["Efectivo", "Transferencia", "Crédito"].includes(paymentMethod)) return error("Método de pago no permitido.");
         const distributorId = String(payload.distributorId || "");
         const items = normalizeItems((payload.items as SaleItem[]) || [], branchId, customerType, distributorId);
-        items.forEach((item) => applyStock(item.productId, branchId, -item.quantity));
-        const subtotal = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
-        const discountTotal = items.reduce((sum, item) => sum + item.discount, 0);
-        const estimatedCost = items.reduce((sum, item) => sum + (getProduct(item.productId)?.productionCost || 0) * item.quantity, 0);
+        const saleItems = items.map((item) => {
+          const lotsUsed = applyStock(item.productId, branchId, -item.quantity);
+          return { ...item, lotsUsed, lotId: lotsUsed[0]?.lotId };
+        });
+        const subtotal = saleItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
+        const discountTotal = saleItems.reduce((sum, item) => sum + item.discount, 0);
+        const estimatedCost = saleItems.reduce((sum, item) => sum + (getProduct(item.productId)?.productionCost || 0) * item.quantity, 0);
         const distributor = demoDistributors.find((candidate) => candidate.id === distributorId);
         const branch = getBranch(branchId);
         const sale = {
@@ -272,14 +362,14 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           customerType: customerType as never,
           distributorId,
           distributorName: distributor?.name,
-          paymentMethod: (payload.paymentMethod as never) || "Efectivo",
-          items,
+          paymentMethod: paymentMethod as never,
+          items: saleItems,
           subtotal,
           discountTotal,
           total: subtotal - discountTotal,
           estimatedCost,
           estimatedProfit: subtotal - discountTotal - estimatedCost,
-          status: payload.paymentMethod === "Crédito" ? ("Crédito pendiente" as const) : ("Pagada" as const),
+          status: paymentMethod === "Crédito" ? ("Crédito pendiente" as const) : ("Pagada" as const),
           notes: String(payload.notes || "")
         };
         demoSales.push(sale);
@@ -329,7 +419,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const product = getProduct(String(payload.productId));
         if (!product) return error("Producto no encontrado.");
         const quantity = Number(payload.quantity || 0);
-        applyStock(product.id, branchId, -quantity);
+        const lotsUsed = applyStock(product.id, branchId, -quantity);
         const record = {
           id: nextId("WST", demoWaste.length),
           date: todayIso(),
@@ -338,6 +428,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           branchName: getBranch(branchId)?.name || branchId,
           productId: product.id,
           productName: product.name,
+          lotsUsed,
           quantity,
           reason: (payload.reason as never) || "Otro",
           notes: String(payload.notes || "")
@@ -368,6 +459,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "REGISTER_CREDIT_PAYMENT": {
         const credit = demoCredits.find((item) => item.id === payload.creditId);
         if (!credit) return error("Crédito no encontrado.");
+        if (!["Efectivo", "Transferencia"].includes(String(payload.paymentMethod || ""))) return error("Método de pago no permitido para abonos.");
         const amount = Number(payload.amount || 0);
         credit.paidAmount += amount;
         credit.balance = Math.max(0, credit.totalAmount - credit.paidAmount);
@@ -381,14 +473,14 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         return success(buildDashboardData());
       case "GET_STORE_DAILY_SUMMARY": {
         const user = currentUser(payload);
-        return success(buildStoreSummary(String(payload.branchId || user?.assignedBranches[0] || "BR002")));
+        return success(buildStoreSummary(String(payload.branchId || user?.assignedBranches[0] || "BR001")));
       }
       case "CREATE_CORRECTION_REQUEST":
       case "REVIEW_CORRECTION_REQUEST":
         return success({ id: nextId("COR", 0), ...payload, status: action === "CREATE_CORRECTION_REQUEST" ? "Pendiente" : "Aprobada" });
       case "REGISTER_DAILY_CLOSING": {
         const systemTotal = Number(payload.systemTotal || 0);
-        const reported = Number(payload.cashReported || 0) + Number(payload.transferReported || 0) + Number(payload.cardReported || 0) + Number(payload.creditReported || 0);
+        const reported = Number(payload.cashReported || 0) + Number(payload.transferReported || 0) + Number(payload.creditReported || 0);
         return success({ id: nextId("CLS", 1), ...payload, difference: reported - systemTotal, status: "Cerrado" }, "Cierre registrado.");
       }
       case "EXPORT_REPORT_DATA":

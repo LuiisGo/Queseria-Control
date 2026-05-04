@@ -98,9 +98,15 @@ export type SaleItem = {
   discount: number;
   subtotal: number;
   lotId?: string;
+  lotsUsed?: Array<{
+    lotId: string;
+    lotNumber: string;
+    expiresAt?: string;
+    quantity: number;
+  }>;
 };
 
-export type PaymentMethod = "Efectivo" | "Transferencia" | "Tarjeta" | "Crédito" | "Otro";
+export type PaymentMethod = "Efectivo" | "Transferencia" | "Crédito";
 export type SaleStatus = "Pagada" | "Crédito pendiente" | "Crédito pagado parcialmente" | "Crédito pagado" | "Anulada por Admin";
 
 export type Sale = {
@@ -184,7 +190,6 @@ export type DailyClosing = {
   systemTotal: number;
   cashReported: number;
   transferReported: number;
-  cardReported: number;
   creditReported: number;
   difference: number;
   status: "Pendiente" | "Cerrado" | "Revisado por Admin";
@@ -215,6 +220,7 @@ export type DashboardData = {
 
 export type StoreSummary = {
   branchName: string;
+  branchType?: BranchType;
   salesToday: number;
   productsSold: Array<{ name: string; units: number }>;
   inventory: InventoryItem[];

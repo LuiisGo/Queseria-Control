@@ -10,8 +10,8 @@ import type { StoreSummary } from "@/types";
 
 const actions = [
   { href: "/tienda/venta", label: "Registrar venta", icon: ShoppingCart },
-  { href: "/tienda/entrada", label: "Registrar entrada", icon: PackagePlus },
-  { href: "/tienda/salida", label: "Registrar salida", icon: Truck },
+  { href: "/tienda/entrada", label: "Entrada a Central", icon: PackagePlus, centralOnly: true },
+  { href: "/tienda/salida", label: "Enviar a sucursal", icon: Truck },
   { href: "/tienda/inventario", label: "Ver inventario", icon: Boxes },
   { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText }
 ];
@@ -37,7 +37,7 @@ export function StoreHome() {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {actions.map((action) => {
+        {actions.filter((action) => !action.centralOnly || summary?.branchType === "Tienda central").map((action) => {
           const Icon = action.icon;
           return (
             <Link key={action.href} href={action.href} className="rounded-lg border border-black/10 bg-white p-4 shadow-soft transition hover:-translate-y-0.5 hover:bg-cream-100">

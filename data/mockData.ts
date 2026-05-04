@@ -30,11 +30,11 @@ export const demoUsers: SessionUser[] = [
   },
   {
     id: "USR002",
-    name: "Agromarket 1",
+    name: "Central",
     username: "tienda",
     role: "Tienda",
     permissions: allStorePermissions,
-    assignedBranches: ["BR002"],
+    assignedBranches: ["BR001"],
     active: true
   }
 ];
@@ -63,11 +63,11 @@ export const demoDistributors: Distributor[] = [
 ];
 
 export const demoLots: InventoryLot[] = [
-  { id: "LOT001", productId: "LSA001", branchId: "BR001", lotNumber: "L-0501-A", expiresAt: "2026-05-12", quantity: 32 },
-  { id: "LOT002", productId: "LSA002", branchId: "BR001", lotNumber: "L-0501-B", expiresAt: "2026-05-14", quantity: 24 },
-  { id: "LOT003", productId: "LSA003", branchId: "BR001", lotNumber: "L-0501-C", expiresAt: "2026-05-14", quantity: 20 },
-  { id: "LOT004", productId: "LSA004", branchId: "BR002", lotNumber: "C-0502-A", expiresAt: "2026-05-10", quantity: 18 },
-  { id: "LOT005", productId: "LSA005", branchId: "BR002", lotNumber: "C-0502-B", expiresAt: "2026-05-11", quantity: 16 }
+  { id: "LOT001", productId: "LSA001", branchId: "BR001", lotNumber: "001", expiresAt: "2026-05-12", quantity: 32 },
+  { id: "LOT002", productId: "LSA002", branchId: "BR001", lotNumber: "002", expiresAt: "2026-05-14", quantity: 24 },
+  { id: "LOT003", productId: "LSA003", branchId: "BR001", lotNumber: "003", expiresAt: "2026-05-14", quantity: 20 },
+  { id: "LOT004", productId: "LSA004", branchId: "BR002", lotNumber: "004", expiresAt: "2026-05-10", quantity: 18 },
+  { id: "LOT005", productId: "LSA005", branchId: "BR002", lotNumber: "005", expiresAt: "2026-05-11", quantity: 16 }
 ];
 
 export const demoInventory: InventoryItem[] = [
@@ -135,7 +135,7 @@ export const demoWaste: WasteRecord[] = [
 ];
 
 export const demoClosings: DailyClosing[] = [
-  { id: "CLS001", date: now.slice(0, 10), branchId: "BR002", userId: "USR002", systemTotal: 0, cashReported: 0, transferReported: 0, cardReported: 0, creditReported: 0, difference: 0, status: "Cerrado" }
+  { id: "CLS001", date: now.slice(0, 10), branchId: "BR001", userId: "USR002", systemTotal: 0, cashReported: 0, transferReported: 0, creditReported: 0, difference: 0, status: "Cerrado" }
 ];
 
 export function buildDashboardData(): DashboardData {
@@ -163,7 +163,6 @@ export function buildDashboardData(): DashboardData {
     salesByPaymentMethod: [
       { name: "Efectivo", total: 0 },
       { name: "Transferencia", total: 0 },
-      { name: "Tarjeta", total: 0 },
       { name: "Crédito", total: 0 }
     ],
     monthlyComparison: [
@@ -190,17 +189,33 @@ export function buildDashboardData(): DashboardData {
   };
 }
 
-export function buildStoreSummary(branchId = "BR002"): StoreSummary {
+export function buildStoreSummary(branchId = "BR001"): StoreSummary {
   const branch = demoBranches.find((item) => item.id === branchId) || demoBranches[1];
   const branchSales = demoSales.filter((sale) => sale.branchId === branch.id);
   const inventory = demoInventory.filter((item) => item.branchId === branch.id);
+  const expiringAlerts = demoLots
+    .filter((lot) => lot.branchId === branch.id && lot.quantity > 0 && isExpiringSoon(lot.expiresAt))
+    .map((lot) => {
+      const product = demoProducts.find((item) => item.id === lot.productId);
+      return `El lote ${lot.lotNumber} de ${product?.name || lot.productId} vence el ${lot.expiresAt} y tiene ${lot.quantity} unidades en ${branch.name}.`;
+    });
   return {
     branchName: branch.name,
+    branchType: branch.type,
     salesToday: branchSales.reduce((sum, sale) => sum + sale.total, 0),
     productsSold: branchSales.flatMap((sale) => sale.items).map((item) => ({ name: item.productName || item.productId, units: item.quantity })),
     inventory,
     movementsToday: branchSales.length + demoWaste.filter((waste) => waste.branchId === branch.id).length,
     closingStatus: demoClosings.find((closing) => closing.branchId === branch.id)?.status || "Pendiente",
-    alerts: inventory.filter((item) => item.quantity <= item.minStock).map((item) => `Stock bajo: ${item.productName}`)
+    alerts: [
+      ...inventory.filter((item) => item.quantity <= item.minStock).map((item) => `Stock bajo: ${item.productName}`),
+      ...expiringAlerts
+    ]
   };
+}
+
+function isExpiringSoon(expiresAt?: string) {
+  if (!expiresAt) return false;
+  const days = (new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+  return days >= 0 && days <= 10;
 }

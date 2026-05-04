@@ -13,6 +13,7 @@ export type FieldConfig = {
   type?: "text" | "number" | "date" | "select" | "textarea" | "file";
   options?: string[];
   optionSource?: "products" | "branches" | "distributors" | "credits";
+  optionFilter?: "central" | "subbranches";
   defaultValue?: string;
   accept?: string;
   required?: boolean;
@@ -115,7 +116,7 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
                   <select className="field" required={field.required} value={values[field.name] || ""} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))}>
                     <option value="">Seleccionar</option>
                     {field.optionSource
-                      ? (optionRows[field.optionSource] || []).map((option) => (
+                      ? filterOptions(optionRows[field.optionSource] || [], field).map((option) => (
                           <option key={String(option.id)} value={String(option.id)}>
                             {optionLabel(option, field.optionSource as NonNullable<FieldConfig["optionSource"]>)}
                           </option>
@@ -193,4 +194,12 @@ function optionLabel(option: Record<string, unknown>, source: NonNullable<FieldC
     return `${option.distributorName || option.id} - ${option.status || "Crédito"}`;
   }
   return String(option.name || option.productName || option.id);
+}
+
+function filterOptions(options: Record<string, unknown>[], field: FieldConfig) {
+  if (field.optionSource !== "branches" || !field.optionFilter) return options;
+  return options.filter((option) => {
+    if (field.optionFilter === "central") return option.type === "Tienda central";
+    return option.type === "Punto de venta / sucursal";
+  });
 }
