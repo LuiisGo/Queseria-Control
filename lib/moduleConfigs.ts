@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import type { Column } from "@/components/DataTable";
 import type { FieldConfig } from "@/components/ModulePage";
 import { formatCurrency } from "@/lib/utils";
@@ -14,6 +15,14 @@ type ModuleConfig = {
 
 const money = (key: string) => (row: Record<string, unknown>) => formatCurrency(Number(row[key] || 0));
 const active = (row: Record<string, unknown>) => (row.active === false ? "Inactivo" : "Activo");
+const imageThumb = (row: Record<string, unknown>) =>
+  typeof row.imageUrl === "string" && row.imageUrl
+    ? createElement("img", {
+        src: row.imageUrl,
+        alt: String(row.name || "Producto"),
+        className: "h-12 w-12 rounded-md border border-black/10 object-cover"
+      })
+    : "Sin imagen";
 
 export const adminModules: Record<string, ModuleConfig> = {
   productos: {
@@ -21,6 +30,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     description: "Catálogo de lácteos, presentaciones, precios base y mínimos de stock.",
     endpoint: "/api/products",
     columns: [
+      { key: "imageUrl", label: "Imagen", render: imageThumb },
       { key: "code", label: "Código" },
       { key: "name", label: "Producto" },
       { key: "presentation", label: "Presentación" },
@@ -38,7 +48,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "distributorPrice", label: "Precio distribuidor", type: "number" },
       { name: "productionCost", label: "Costo producción", type: "number" },
       { name: "minStock", label: "Stock mínimo", type: "number" },
-      { name: "imageUrl", label: "URL imagen" }
+      { name: "imageUrl", label: "Imagen del producto", type: "file", accept: "image/*" }
     ],
     transformSubmit: (values) => ({
       ...values,

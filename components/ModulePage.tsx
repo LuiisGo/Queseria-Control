@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import Image from "next/image";
+import { ImagePlus, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/components/DataTable";
 import { cn } from "@/lib/utils";
@@ -9,10 +10,11 @@ import { cn } from "@/lib/utils";
 export type FieldConfig = {
   name: string;
   label: string;
-  type?: "text" | "number" | "date" | "select" | "textarea";
+  type?: "text" | "number" | "date" | "select" | "textarea" | "file";
   options?: string[];
   optionSource?: "products" | "branches" | "distributors" | "credits";
   defaultValue?: string;
+  accept?: string;
   required?: boolean;
   placeholder?: string;
 };
@@ -124,6 +126,12 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
                           </option>
                         ))}
                   </select>
+                ) : field.type === "file" ? (
+                  <FileInput
+                    field={field}
+                    value={values[field.name] || ""}
+                    onChange={(value) => setValues((current) => ({ ...current, [field.name]: value }))}
+                  />
                 ) : field.type === "textarea" ? (
                   <textarea className="field h-24 py-3" placeholder={field.placeholder} value={values[field.name] || ""} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))} />
                 ) : (
@@ -139,6 +147,44 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
       )}
 
       <DataTable title={title} rows={rows} columns={columns} />
+    </div>
+  );
+}
+
+function FileInput({ field, value, onChange }: { field: FieldConfig; value: string; onChange: (value: string) => void }) {
+  async function handleFile(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecciona una imagen válida.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("La imagen debe pesar menos de 2 MB para esta demo.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onChange(String(reader.result || ""));
+    reader.onerror = () => toast.error("No se pudo leer la imagen.");
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div className="rounded-lg border border-dashed border-black/15 bg-white p-3">
+      <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-md bg-cream-50 px-4 py-5 text-center transition hover:bg-cream-100">
+        <ImagePlus className="h-6 w-6 text-black/55" />
+        <span className="mt-2 text-sm font-semibold text-ink">Subir imagen</span>
+        <span className="mt-1 text-xs text-black/50">Galería, cámara o archivos</span>
+        <input className="sr-only" type="file" accept={field.accept || "image/*"} required={field.required && !value} onChange={(event) => void handleFile(event.target.files?.[0])} />
+      </label>
+      {value && (
+        <div className="mt-3 flex items-center gap-3">
+          {/* Data URLs are only used in demo mode; real Apps Script can swap this for Drive URLs. */}
+          <Image src={value} alt="Vista previa" width={56} height={56} unoptimized className="h-14 w-14 rounded-md border border-black/10 object-cover" />
+          <button className="btn-secondary h-9 px-3 text-xs" type="button" onClick={() => onChange("")}>
+            Quitar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
