@@ -111,4 +111,4 @@ npm run build
 
 ## Alcance MVP
 
-El MVP incluye flujos principales funcionales, validaciones en backend, auditoría y modelo de hojas listo para operación. Las imágenes de producto se guardan como URL/placeholder; carga directa a Google Drive queda documentada como mejora futura.
+El MVP incluye flujos principales funcionales, validaciones en backend, auditoría y modelo de hojas listo para operación. En demo, las imágenes de producto se suben desde galería/cámara/archivos y se guardan localmente como datos de imagen para mostrar la vista previa.

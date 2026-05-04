@@ -42,7 +42,7 @@ export type Product = {
   id: string;
   code: string;
   name: string;
-  imageUrl?: string;
+  imageData?: string;
   unit: string;
   presentation?: string;
   category?: string;

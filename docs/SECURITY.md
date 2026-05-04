@@ -19,7 +19,7 @@
 - Password hashing usa SHA-256 con salt por compatibilidad con Apps Script. Es aceptable para demo/MVP interno, pero no equivale a bcrypt/argon2.
 - Las sesiones son simples y duran 24 horas.
 - IP/User Agent quedan opcionales porque Apps Script Web App no siempre expone esos datos de forma confiable.
-- La carga real de imágenes a Drive no está incluida; productos usan URL/placeholder.
+- En demo, las imágenes de producto se suben desde galería/cámara/archivos y se guardan como datos de imagen para vista previa; en producción conviene enviarlas a Google Drive desde Apps Script.
 
 ## Mejoras futuras
 

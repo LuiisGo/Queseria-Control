@@ -16,9 +16,9 @@ type ModuleConfig = {
 const money = (key: string) => (row: Record<string, unknown>) => formatCurrency(Number(row[key] || 0));
 const active = (row: Record<string, unknown>) => (row.active === false ? "Inactivo" : "Activo");
 const imageThumb = (row: Record<string, unknown>) =>
-  typeof row.imageUrl === "string" && row.imageUrl
+  typeof row.imageData === "string" && row.imageData
     ? createElement("img", {
-        src: row.imageUrl,
+        src: row.imageData,
         alt: String(row.name || "Producto"),
         className: "h-12 w-12 rounded-md border border-black/10 object-cover"
       })
@@ -30,7 +30,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     description: "Catálogo de lácteos, presentaciones, precios base y mínimos de stock.",
     endpoint: "/api/products",
     columns: [
-      { key: "imageUrl", label: "Imagen", render: imageThumb },
+      { key: "imageData", label: "Imagen", render: imageThumb },
       { key: "code", label: "Código" },
       { key: "name", label: "Producto" },
       { key: "presentation", label: "Presentación" },
@@ -48,7 +48,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "distributorPrice", label: "Precio distribuidor", type: "number" },
       { name: "productionCost", label: "Costo producción", type: "number" },
       { name: "minStock", label: "Stock mínimo", type: "number" },
-      { name: "imageUrl", label: "Imagen del producto", type: "file", accept: "image/*" }
+      { name: "imageData", label: "Imagen del producto", type: "file", accept: "image/*" }
     ],
     transformSubmit: (values) => ({
       ...values,

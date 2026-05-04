@@ -178,7 +178,6 @@ function FileInput({ field, value, onChange }: { field: FieldConfig; value: stri
       </label>
       {value && (
         <div className="mt-3 flex items-center gap-3">
-          {/* Data URLs are only used in demo mode; real Apps Script can swap this for Drive URLs. */}
           <Image src={value} alt="Vista previa" width={56} height={56} unoptimized className="h-14 w-14 rounded-md border border-black/10 object-cover" />
           <button className="btn-secondary h-9 px-3 text-xs" type="button" onClick={() => onChange("")}>
             Quitar

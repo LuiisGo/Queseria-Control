@@ -165,7 +165,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           id: nextId("LSA", demoProducts.length),
           code: nextId("LSA", demoProducts.length),
           name: String(payload.name || "Nuevo producto"),
-          imageUrl: String(payload.imageUrl || ""),
+          imageData: String(payload.imageData || ""),
           unit: String(payload.unit || "unidad"),
           presentation: String(payload.presentation || ""),
           category: String(payload.category || ""),
