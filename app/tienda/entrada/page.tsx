@@ -7,8 +7,8 @@ export default function StoreEntryPage() {
   return (
     <ModulePage
       {...adminModules.produccion}
-      title="Entrada a Central"
-      description="Solo Central registra entradas con código de lote y vencimiento. Las subsucursales reciben inventario automáticamente cuando se hace un envío desde Central."
+      title="Registrar producción"
+      description="Central registra producción con código de lote y vencimiento. Las subsucursales reciben inventario automáticamente cuando Central hace un envío."
     />
   );
 }

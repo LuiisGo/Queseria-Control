@@ -6,6 +6,7 @@ import { ImagePlus, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/components/DataTable";
 import { cn } from "@/lib/utils";
+import type { SessionUser } from "@/types";
 
 export type FieldConfig = {
   name: string;
@@ -13,7 +14,7 @@ export type FieldConfig = {
   type?: "text" | "number" | "date" | "select" | "textarea" | "file";
   options?: string[];
   optionSource?: "products" | "branches" | "distributors" | "credits";
-  optionFilter?: "central" | "subbranches";
+  optionFilter?: "central" | "subbranches" | "assigned";
   defaultValue?: string;
   accept?: string;
   required?: boolean;
@@ -33,6 +34,7 @@ type ModulePageProps = {
 export function ModulePage({ title, description, endpoint, columns, fields = [], formTitle = "Nuevo registro", transformSubmit }: ModulePageProps) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [optionRows, setOptionRows] = useState<Record<string, Record<string, unknown>[]>>({});
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const initial = useMemo(() => Object.fromEntries(fields.map((field) => [field.name, field.defaultValue || ""])), [fields]);
@@ -50,6 +52,14 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.success) setCurrentUser(json.data);
+      });
+  }, []);
 
   useEffect(() => {
     const endpoints: Record<NonNullable<FieldConfig["optionSource"]>, string> = {
@@ -116,7 +126,7 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
                   <select className="field" required={field.required} value={values[field.name] || ""} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))}>
                     <option value="">Seleccionar</option>
                     {field.optionSource
-                      ? filterOptions(optionRows[field.optionSource] || [], field).map((option) => (
+                      ? filterOptions(optionRows[field.optionSource] || [], field, currentUser).map((option) => (
                           <option key={String(option.id)} value={String(option.id)}>
                             {optionLabel(option, field.optionSource as NonNullable<FieldConfig["optionSource"]>)}
                           </option>
@@ -196,10 +206,12 @@ function optionLabel(option: Record<string, unknown>, source: NonNullable<FieldC
   return String(option.name || option.productName || option.id);
 }
 
-function filterOptions(options: Record<string, unknown>[], field: FieldConfig) {
+function filterOptions(options: Record<string, unknown>[], field: FieldConfig, currentUser: SessionUser | null) {
   if (field.optionSource !== "branches" || !field.optionFilter) return options;
   return options.filter((option) => {
     if (field.optionFilter === "central") return option.type === "Tienda central";
-    return option.type === "Punto de venta / sucursal";
+    if (field.optionFilter === "subbranches") return option.type === "Punto de venta / sucursal";
+    if (!currentUser || currentUser.role === "Admin") return true;
+    return currentUser.assignedBranches.includes(String(option.id));
   });
 }

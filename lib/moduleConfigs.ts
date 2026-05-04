@@ -130,7 +130,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   produccion: {
     title: "Producción",
-    description: "Registro de producto terminado con lote, vencimiento y entrada automática a inventario.",
+    description: "Central y Admin registran producto terminado con código de lote, vencimiento y entrada automática a inventario.",
     endpoint: "/api/production",
     columns: [
       { key: "id", label: "ID" },
@@ -153,7 +153,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   envios: {
     title: "Envíos",
-    description: "Salidas desde tienda central hacia sucursales, con suma automática al destino en MVP.",
+    description: "Envíos desde Central/Admin hacia tiendas. Los envíos a distribuidores se registran como venta a distribuidor.",
     endpoint: "/api/transfers",
     columns: [
       { key: "id", label: "ID" },
@@ -178,7 +178,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   ventas: {
     title: "Ventas",
-    description: "Ventas internas, contado o crédito, con precio automático y descuento de inventario.",
+    description: "Cada sucursal registra sus ventas. Los envíos a distribuidores se registran aquí como venta a distribuidor.",
     endpoint: "/api/sales",
     columns: [
       { key: "id", label: "ID" },
@@ -189,7 +189,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "status", label: "Estado" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", optionFilter: "assigned", defaultValue: "BR001", required: true },
       { name: "customerType", label: "Cliente", type: "select", options: ["Cliente general", "Distribuidor/mayorista"], required: true },
       { name: "distributorId", label: "Distribuidor", type: "select", optionSource: "distributors" },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
@@ -258,7 +258,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", optionFilter: "assigned", defaultValue: "BR001", required: true },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "reason", label: "Motivo", type: "select", options: ["Vencido", "Dañado", "Pérdida", "Devolución no utilizable", "Otro"], required: true },

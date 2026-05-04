@@ -53,6 +53,13 @@ function getBranch(branchId?: string) {
   return demoBranches.find((branch) => branch.id === branchId);
 }
 
+function assertAssignedBranch(user: SessionUser, branchId: string) {
+  if (user.role === "Admin") return;
+  if (!user.assignedBranches.includes(branchId)) {
+    throw new Error("Ubicación no asignada.");
+  }
+}
+
 function getInventory(productId: string, branchId: string) {
   let item = demoInventory.find((inventory) => inventory.productId === productId && inventory.branchId === branchId);
   if (!item) {
@@ -272,6 +279,8 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (!user) return error("Sesión requerida.");
         const productId = String(payload.productId);
         const branchId = String(payload.branchId || user.assignedBranches[0]);
+        assertAssignedBranch(user, branchId);
+        if (getBranch(branchId)?.type !== "Tienda central") return error("Solo Central puede registrar producción.");
         const product = getProduct(productId);
         if (!product) return error("Producto no encontrado.");
         const quantity = Number(payload.quantity || 0);
@@ -305,6 +314,9 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (!user) return error("Sesión requerida.");
         const originBranchId = String(payload.originBranchId || "BR001");
         const destinationBranchId = String(payload.destinationBranchId || "");
+        assertAssignedBranch(user, originBranchId);
+        if (getBranch(originBranchId)?.type !== "Tienda central") return error("Los envíos a tiendas salen desde Central.");
+        if (getBranch(destinationBranchId)?.type !== "Punto de venta / sucursal") return error("El destino debe ser una tienda/sucursal.");
         const items = normalizeItems((payload.items as SaleItem[]) || [], originBranchId);
         const transferItems = items.map((item) => {
           const lotsUsed = applyStock(item.productId, originBranchId, -item.quantity);
@@ -336,7 +348,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
         const branchId = String(payload.branchId || user.assignedBranches[0]);
-        if (user.role === "Tienda" && !user.assignedBranches.includes(branchId)) return error("Ubicación no asignada.");
+        assertAssignedBranch(user, branchId);
         if (user.role === "Tienda" && !user.permissions.can_register_sales) return error("No tiene permiso para registrar ventas.");
         const customerType = (payload.customerType as string) || "Cliente general";
         const paymentMethod = String(payload.paymentMethod || "Efectivo");
@@ -416,6 +428,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
         const branchId = String(payload.branchId || user.assignedBranches[0]);
+        assertAssignedBranch(user, branchId);
         const product = getProduct(String(payload.productId));
         if (!product) return error("Producto no encontrado.");
         const quantity = Number(payload.quantity || 0);

@@ -10,7 +10,7 @@ import type { StoreSummary } from "@/types";
 
 const actions = [
   { href: "/tienda/venta", label: "Registrar venta", icon: ShoppingCart },
-  { href: "/tienda/entrada", label: "Entrada a Central", icon: PackagePlus, centralOnly: true },
+  { href: "/tienda/entrada", label: "Registrar producción", icon: PackagePlus, centralOnly: true },
   { href: "/tienda/salida", label: "Enviar a sucursal", icon: Truck },
   { href: "/tienda/inventario", label: "Ver inventario", icon: Boxes },
   { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText }
