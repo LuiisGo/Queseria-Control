@@ -36,12 +36,22 @@ export const demoUsers: SessionUser[] = [
     permissions: allStorePermissions,
     assignedBranches: ["BR001"],
     active: true
+  },
+  {
+    id: "USR003",
+    name: "Agromarket 1",
+    username: "agromarket1",
+    role: "Tienda",
+    permissions: allStorePermissions,
+    assignedBranches: ["BR002"],
+    active: true
   }
 ];
 
 export const demoPasswords: Record<string, string> = {
   admin: "admin123",
-  tienda: "tienda123"
+  tienda: "tienda123",
+  agromarket1: "agromarket123"
 };
 
 export const demoBranches: Branch[] = [
