@@ -31,7 +31,7 @@ export function AdminDashboard() {
     <div className="space-y-5">
       <section>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-black/45">Panel administrativo</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">Pulso operativo</h1>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">Resumen administrativo</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Ventas, inventario, producción, créditos y alertas críticas de la quesería.</p>
       </section>
 

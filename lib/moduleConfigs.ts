@@ -34,7 +34,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "presentation", label: "Presentación" },
       { name: "category", label: "Categoría" },
       { name: "unit", label: "Unidad", placeholder: "unidad" },
-      { name: "finalPrice", label: "Precio final", type: "number", required: true },
+      { name: "finalPrice", label: "Precio final", type: "number", defaultValue: "0", required: true },
       { name: "distributorPrice", label: "Precio distribuidor", type: "number" },
       { name: "productionCost", label: "Costo producción", type: "number" },
       { name: "minStock", label: "Stock mínimo", type: "number" },
@@ -90,20 +90,20 @@ export const adminModules: Record<string, ModuleConfig> = {
     description: "Precio final, distribuidor e historial base. Los precios especiales quedan modelados para Apps Script.",
     endpoint: "/api/prices",
     columns: [
-      { key: "productId", label: "Producto ID" },
       { key: "productName", label: "Producto" },
       { key: "finalPrice", label: "Final", render: money("finalPrice") },
       { key: "distributorPrice", label: "Distribuidor", render: money("distributorPrice") },
       { key: "updatedAt", label: "Actualizado" }
     ],
     fields: [
-      { name: "productId", label: "Producto ID", required: true },
+      { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "priceType", label: "Tipo", type: "select", options: ["Precio venta final", "Precio distribuidor", "Precio especial por sucursal", "Precio especial por distribuidor"], required: true },
-      { name: "price", label: "Precio", type: "number", required: true },
-      { name: "scopeId", label: "Sucursal/Distribuidor ID" },
+      { name: "price", label: "Precio", type: "number", defaultValue: "0", required: true },
+      { name: "scopeBranchId", label: "Sucursal especial", type: "select", optionSource: "branches" },
+      { name: "scopeDistributorId", label: "Distribuidor especial", type: "select", optionSource: "distributors" },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
-    transformSubmit: (values) => ({ ...values, price: Number(values.price) })
+    transformSubmit: (values) => ({ ...values, scopeId: values.scopeDistributorId || values.scopeBranchId, price: Number(values.price) })
   },
   inventario: {
     title: "Inventario",
@@ -125,14 +125,14 @@ export const adminModules: Record<string, ModuleConfig> = {
     columns: [
       { key: "id", label: "ID" },
       { key: "productName", label: "Producto" },
-      { key: "branchId", label: "Destino" },
+      { key: "branchName", label: "Destino" },
       { key: "quantity", label: "Cantidad" },
       { key: "lotNumber", label: "Lote" },
       { key: "expiresAt", label: "Vence" }
     ],
     fields: [
-      { name: "productId", label: "Producto ID", required: true },
-      { name: "branchId", label: "Destino ID", required: true },
+      { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
+      { name: "branchId", label: "Destino", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "unitCost", label: "Costo unitario", type: "number" },
       { name: "lotNumber", label: "Lote" },
@@ -147,15 +147,15 @@ export const adminModules: Record<string, ModuleConfig> = {
     endpoint: "/api/transfers",
     columns: [
       { key: "id", label: "ID" },
-      { key: "originBranchId", label: "Origen" },
-      { key: "destinationBranchId", label: "Destino" },
+      { key: "originBranchName", label: "Sale de" },
+      { key: "destinationBranchName", label: "Enviar a" },
       { key: "status", label: "Estado" },
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "originBranchId", label: "Origen ID", required: true, placeholder: "BR002" },
-      { name: "destinationBranchId", label: "Destino ID", required: true },
-      { name: "productId", label: "Producto ID", required: true },
+      { name: "originBranchId", label: "Sale de", type: "select", optionSource: "branches", defaultValue: "BR001", required: true },
+      { name: "destinationBranchId", label: "Enviar a", type: "select", optionSource: "branches", defaultValue: "BR002", required: true },
+      { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
@@ -179,10 +179,10 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "status", label: "Estado" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación ID", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR002", required: true },
       { name: "customerType", label: "Cliente", type: "select", options: ["Cliente general", "Distribuidor/mayorista"], required: true },
-      { name: "distributorId", label: "Distribuidor ID" },
-      { name: "productId", label: "Producto ID", required: true },
+      { name: "distributorId", label: "Distribuidor", type: "select", optionSource: "distributors" },
+      { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "paymentMethod", label: "Pago", type: "select", options: ["Efectivo", "Transferencia", "Tarjeta", "Crédito", "Otro"], required: true },
       { name: "notes", label: "Notas", type: "textarea" }
@@ -228,7 +228,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "status", label: "Estado" }
     ],
     fields: [
-      { name: "creditId", label: "Crédito ID", required: true },
+      { name: "creditId", label: "Crédito", type: "select", optionSource: "credits", required: true },
       { name: "amount", label: "Monto", type: "number", required: true },
       { name: "paymentMethod", label: "Método", type: "select", options: ["Efectivo", "Transferencia", "Tarjeta", "Otro"], required: true },
       { name: "note", label: "Nota", type: "textarea" }
@@ -242,14 +242,14 @@ export const adminModules: Record<string, ModuleConfig> = {
     columns: [
       { key: "id", label: "ID" },
       { key: "productName", label: "Producto" },
-      { key: "branchId", label: "Ubicación" },
+      { key: "branchName", label: "Ubicación" },
       { key: "quantity", label: "Cantidad" },
       { key: "reason", label: "Motivo" },
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación ID", required: true },
-      { name: "productId", label: "Producto ID", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", defaultValue: "BR002", required: true },
+      { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "reason", label: "Motivo", type: "select", options: ["Vencido", "Dañado", "Pérdida", "Devolución no utilizable", "Otro"], required: true },
       { name: "notes", label: "Notas", type: "textarea" }

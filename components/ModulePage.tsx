@@ -11,6 +11,8 @@ export type FieldConfig = {
   label: string;
   type?: "text" | "number" | "date" | "select" | "textarea";
   options?: string[];
+  optionSource?: "products" | "branches" | "distributors" | "credits";
+  defaultValue?: string;
   required?: boolean;
   placeholder?: string;
 };
@@ -27,9 +29,10 @@ type ModulePageProps = {
 
 export function ModulePage({ title, description, endpoint, columns, fields = [], formTitle = "Nuevo registro", transformSubmit }: ModulePageProps) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [optionRows, setOptionRows] = useState<Record<string, Record<string, unknown>[]>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const initial = useMemo(() => Object.fromEntries(fields.map((field) => [field.name, ""])), [fields]);
+  const initial = useMemo(() => Object.fromEntries(fields.map((field) => [field.name, field.defaultValue || ""])), [fields]);
   const [values, setValues] = useState<Record<string, string>>(initial);
 
   const load = useCallback(async () => {
@@ -44,6 +47,23 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const endpoints: Record<NonNullable<FieldConfig["optionSource"]>, string> = {
+      products: "/api/products",
+      branches: "/api/branches",
+      distributors: "/api/distributors",
+      credits: "/api/credits"
+    };
+    const sources = Array.from(new Set(fields.map((field) => field.optionSource).filter(Boolean))) as NonNullable<FieldConfig["optionSource"]>[];
+    sources.forEach((source) => {
+      fetch(endpoints[source], { cache: "no-store" })
+        .then((response) => response.json())
+        .then((json) => {
+          if (json.success) setOptionRows((current) => ({ ...current, [source]: Array.isArray(json.data) ? json.data : [] }));
+        });
+    });
+  }, [fields]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,11 +112,17 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
                 {field.type === "select" ? (
                   <select className="field" required={field.required} value={values[field.name] || ""} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))}>
                     <option value="">Seleccionar</option>
-                    {field.options?.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
+                    {field.optionSource
+                      ? (optionRows[field.optionSource] || []).map((option) => (
+                          <option key={String(option.id)} value={String(option.id)}>
+                            {optionLabel(option, field.optionSource as NonNullable<FieldConfig["optionSource"]>)}
+                          </option>
+                        ))
+                      : field.options?.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
                   </select>
                 ) : field.type === "textarea" ? (
                   <textarea className="field h-24 py-3" placeholder={field.placeholder} value={values[field.name] || ""} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))} />
@@ -115,4 +141,11 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
       <DataTable title={title} rows={rows} columns={columns} />
     </div>
   );
+}
+
+function optionLabel(option: Record<string, unknown>, source: NonNullable<FieldConfig["optionSource"]>) {
+  if (source === "credits") {
+    return `${option.distributorName || option.id} - ${option.status || "Crédito"}`;
+  }
+  return String(option.name || option.productName || option.id);
 }

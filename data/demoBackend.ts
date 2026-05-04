@@ -210,6 +210,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           date: todayIso(),
           userId: user.id,
           branchId,
+          branchName: getBranch(branchId)?.name || branchId,
           productId: product.id,
           productName: product.name,
           quantity,
@@ -224,7 +225,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "REGISTER_TRANSFER": {
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
-        const originBranchId = String(payload.originBranchId || "BR002");
+        const originBranchId = String(payload.originBranchId || "BR001");
         const destinationBranchId = String(payload.destinationBranchId || "");
         const items = normalizeItems((payload.items as SaleItem[]) || [], originBranchId);
         items.forEach((item) => {
@@ -236,7 +237,9 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           date: todayIso(),
           userId: user.id,
           originBranchId,
+          originBranchName: getBranch(originBranchId)?.name || originBranchId,
           destinationBranchId,
+          destinationBranchName: getBranch(destinationBranchId)?.name || destinationBranchId,
           items,
           status: "Registrado" as const,
           notes: String(payload.notes || "")
@@ -298,11 +301,27 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "LIST_SALES":
         return success(listBySession(demoSales, payload));
       case "LIST_PRODUCTION":
-        return success(listBySession(demoProduction, payload));
+        return success(
+          listBySession(demoProduction, payload).map((record) => ({
+            ...record,
+            branchName: getBranch(record.branchId)?.name || record.branchId
+          }))
+        );
       case "LIST_TRANSFERS":
-        return success(demoTransfers);
+        return success(
+          demoTransfers.map((transfer) => ({
+            ...transfer,
+            originBranchName: getBranch(transfer.originBranchId)?.name || transfer.originBranchId,
+            destinationBranchName: getBranch(transfer.destinationBranchId)?.name || transfer.destinationBranchId
+          }))
+        );
       case "LIST_WASTE":
-        return success(listBySession(demoWaste, payload));
+        return success(
+          listBySession(demoWaste, payload).map((record) => ({
+            ...record,
+            branchName: getBranch(record.branchId)?.name || record.branchId
+          }))
+        );
       case "REGISTER_WASTE": {
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
@@ -316,6 +335,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           date: todayIso(),
           userId: user.id,
           branchId,
+          branchName: getBranch(branchId)?.name || branchId,
           productId: product.id,
           productName: product.name,
           quantity,
