@@ -66,16 +66,20 @@ export const demoLots: InventoryLot[] = [
   { id: "LOT001", productId: "LSA001", branchId: "BR001", lotNumber: "001", expiresAt: "2026-05-12", quantity: 32 },
   { id: "LOT002", productId: "LSA002", branchId: "BR001", lotNumber: "002", expiresAt: "2026-05-14", quantity: 24 },
   { id: "LOT003", productId: "LSA003", branchId: "BR001", lotNumber: "003", expiresAt: "2026-05-14", quantity: 20 },
-  { id: "LOT004", productId: "LSA004", branchId: "BR002", lotNumber: "004", expiresAt: "2026-05-10", quantity: 18 },
-  { id: "LOT005", productId: "LSA005", branchId: "BR002", lotNumber: "005", expiresAt: "2026-05-11", quantity: 16 }
+  { id: "LOT004", productId: "LSA004", branchId: "BR001", lotNumber: "004", expiresAt: "2026-05-10", quantity: 28 },
+  { id: "LOT005", productId: "LSA005", branchId: "BR001", lotNumber: "005", expiresAt: "2026-05-11", quantity: 22 },
+  { id: "LOT006", productId: "LSA004", branchId: "BR002", lotNumber: "004", expiresAt: "2026-05-10", quantity: 18 },
+  { id: "LOT007", productId: "LSA005", branchId: "BR002", lotNumber: "005", expiresAt: "2026-05-11", quantity: 16 }
 ];
 
 export const demoInventory: InventoryItem[] = [
   { id: "INV001", productId: "LSA001", productName: "Queso grande", branchId: "BR001", branchName: "Central", quantity: 32, minStock: 10, lots: [demoLots[0]], updatedAt: now },
   { id: "INV002", productId: "LSA002", productName: "Queso pequeño", branchId: "BR001", branchName: "Central", quantity: 24, minStock: 12, lots: [demoLots[1]], updatedAt: now },
   { id: "INV003", productId: "LSA003", productName: "Queso mediano", branchId: "BR001", branchName: "Central", quantity: 20, minStock: 10, lots: [demoLots[2]], updatedAt: now },
-  { id: "INV004", productId: "LSA004", productName: "Crema vaso", branchId: "BR002", branchName: "Agromarket 1", quantity: 18, minStock: 18, lots: [demoLots[3]], updatedAt: now },
-  { id: "INV005", productId: "LSA005", productName: "Crema bolsa", branchId: "BR002", branchName: "Agromarket 1", quantity: 16, minStock: 18, lots: [demoLots[4]], updatedAt: now }
+  { id: "INV004", productId: "LSA004", productName: "Crema vaso", branchId: "BR001", branchName: "Central", quantity: 28, minStock: 18, lots: [demoLots[3]], updatedAt: now },
+  { id: "INV005", productId: "LSA005", productName: "Crema bolsa", branchId: "BR001", branchName: "Central", quantity: 22, minStock: 18, lots: [demoLots[4]], updatedAt: now },
+  { id: "INV006", productId: "LSA004", productName: "Crema vaso", branchId: "BR002", branchName: "Agromarket 1", quantity: 18, minStock: 18, lots: [demoLots[5]], updatedAt: now },
+  { id: "INV007", productId: "LSA005", productName: "Crema bolsa", branchId: "BR002", branchName: "Agromarket 1", quantity: 16, minStock: 18, lots: [demoLots[6]], updatedAt: now }
 ];
 
 export const demoSales: Sale[] = [

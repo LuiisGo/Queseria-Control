@@ -45,10 +45,11 @@ const adminNav = [
 const storeNav = [
   { href: "/tienda/inicio", label: "Inicio", icon: Home },
   { href: "/tienda/venta", label: "Venta", icon: ShoppingCart },
-  { href: "/tienda/entrada", label: "Producción", icon: Wheat },
-  { href: "/tienda/salida", label: "Envíos", icon: Truck },
   { href: "/tienda/inventario", label: "Inventario", icon: Boxes },
-  { href: "/tienda/cierre-dia", label: "Cierre", icon: ReceiptText }
+  { href: "/tienda/merma", label: "Merma", icon: ClipboardList },
+  { href: "/tienda/cierre-dia", label: "Cierre", icon: ReceiptText },
+  { href: "/tienda/entrada", label: "Producción", icon: Wheat },
+  { href: "/tienda/salida", label: "Envíos", icon: Truck }
 ];
 
 export function AppShell({ children, user, mode }: { children: React.ReactNode; user: SessionUser; mode: "admin" | "store" }) {

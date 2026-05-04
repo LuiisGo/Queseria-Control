@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Boxes, PackagePlus, ReceiptText, ShoppingCart, Truck } from "lucide-react";
+import { AlertTriangle, Boxes, PackagePlus, ReceiptText, ShoppingCart, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
 import { formatCurrency } from "@/lib/utils";
 import type { StoreSummary } from "@/types";
 
 const actions = [
-  { href: "/tienda/venta", label: "Registrar venta", icon: ShoppingCart },
-  { href: "/tienda/entrada", label: "Registrar producción", icon: PackagePlus, centralOnly: true },
-  { href: "/tienda/salida", label: "Enviar a sucursal", icon: Truck },
+  { href: "/tienda/venta", label: "Vender", icon: ShoppingCart },
   { href: "/tienda/inventario", label: "Ver inventario", icon: Boxes },
-  { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText }
+  { href: "/tienda/merma", label: "Registrar merma", icon: AlertTriangle },
+  { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText },
+  { href: "/tienda/entrada", label: "Registrar producción", icon: PackagePlus, centralOnly: true },
+  { href: "/tienda/salida", label: "Enviar a tienda", icon: Truck, centralOnly: true }
 ];
 
 export function StoreHome() {
@@ -33,7 +34,7 @@ export function StoreHome() {
       <section>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-black/45">Tienda</p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">{summary?.branchName || "Mi ubicación"}</h1>
-        <p className="mt-2 text-sm text-black/60">Flujos rápidos para operar desde celular.</p>
+        <p className="mt-2 text-sm text-black/60">Botones grandes y pasos cortos para operar desde celular.</p>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
