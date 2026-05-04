@@ -4,8 +4,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, Minus, Plus, Send } from "lucide-react";
 import { toast } from "sonner";
+import { hasPermission, permissionLabels } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
-import type { Branch, Distributor, InventoryItem, Product, SessionUser, StoreSummary } from "@/types";
+import type { Branch, Distributor, InventoryItem, PermissionKey, Product, SessionUser, StoreSummary } from "@/types";
 
 type Payment = "Efectivo" | "Transferencia" | "Crédito";
 
@@ -33,6 +34,7 @@ export function StoreSaleFlow() {
   const product = state.products.find((item) => item.id === productId);
   const inventory = state.inventory.find((item) => item.productId === productId && item.branchId === branchId);
   const stock = inventory?.quantity || 0;
+  if (state.user && !hasPermission(state.user, "can_register_sales")) return <BlockedFlow title="Vender" permission="can_register_sales" />;
 
   async function submit() {
     if (!product || quantity <= 0) return toast.error("Elige producto y cantidad.");
@@ -108,6 +110,7 @@ export function StoreProductionFlow() {
   const [saving, setSaving] = useState(false);
   const product = state.products.find((item) => item.id === productId);
   const isCentral = state.summary?.branchType === "Tienda central";
+  if (state.user && !hasPermission(state.user, "can_register_entries")) return <BlockedFlow title="Registrar producción" permission="can_register_entries" />;
 
   async function submit() {
     if (!product || quantity <= 0 || !lotNumber || !expiresAt) return toast.error("Completa producto, cantidad, lote y vencimiento.");
@@ -176,6 +179,7 @@ export function StoreTransferFlow() {
   const inventory = state.inventory.find((item) => item.productId === productId && item.branchId === "BR001");
   const stock = inventory?.quantity || 0;
   const isCentral = state.summary?.branchType === "Tienda central";
+  if (state.user && !hasPermission(state.user, "can_register_transfers")) return <BlockedFlow title="Enviar a tienda" permission="can_register_transfers" />;
 
   async function submit() {
     if (!destination || !product || quantity <= 0) return toast.error("Completa destino, producto y cantidad.");
@@ -235,6 +239,7 @@ export function StoreTransferFlow() {
 
 export function StoreInventoryEasy() {
   const [state] = useStoreData();
+  if (state.user && !hasPermission(state.user, "can_view_inventory")) return <BlockedFlow title="Inventario" permission="can_view_inventory" />;
   return (
     <EasyShell title="Inventario" subtitle="Stock por producto, lote y vencimiento.">
       <div className="grid gap-3 md:grid-cols-2">
@@ -273,6 +278,7 @@ export function StoreWasteFlow() {
   const product = state.products.find((item) => item.id === productId);
   const inventory = state.inventory.find((item) => item.productId === productId && item.branchId === branchId);
   const stock = inventory?.quantity || 0;
+  if (state.user && !hasPermission(state.user, "can_register_waste")) return <BlockedFlow title="Registrar merma" permission="can_register_waste" />;
 
   async function submit() {
     if (!product || quantity <= 0) return toast.error("Elige producto y cantidad.");
@@ -307,6 +313,17 @@ export function StoreWasteFlow() {
         disabled={!product || quantity > stock || saving}
         onConfirm={submit}
       />
+    </EasyShell>
+  );
+}
+
+function BlockedFlow({ title, permission }: { title: string; permission: PermissionKey }) {
+  return (
+    <EasyShell title={title} subtitle="Tu usuario no tiene permiso para usar esta opción. Pedí al Admin que lo active en Usuarios y permisos.">
+      <section className="panel p-4">
+        <h2 className="text-lg font-semibold">Permiso requerido</h2>
+        <p className="mt-2 text-sm text-black/60">{permissionLabels[permission]}</p>
+      </section>
     </EasyShell>
   );
 }

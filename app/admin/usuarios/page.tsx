@@ -1,8 +1,7 @@
 "use client";
 
-import { ModulePage } from "@/components/ModulePage";
-import { adminModules } from "@/lib/moduleConfigs";
+import { AdminUsersManager } from "@/components/AdminUsersManager";
 
 export default function UsuariosPage() {
-  return <ModulePage {...adminModules.usuarios} />;
+  return <AdminUsersManager />;
 }

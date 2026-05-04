@@ -61,6 +61,14 @@ function updateRow(name, id, object) {
   return Object.assign(row, object);
 }
 
+function deleteRowsWhere(name, predicate) {
+  var sheet = getSheet(name);
+  var rows = getRows(name);
+  for (var index = rows.length - 1; index >= 0; index--) {
+    if (predicate(rows[index])) sheet.deleteRow(rows[index]._rowNumber);
+  }
+}
+
 function getById(name, id) {
   return getRows(name).find(function(row) { return row.ID === id; });
 }

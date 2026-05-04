@@ -5,28 +5,32 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, Boxes, PackagePlus, ReceiptText, ShoppingCart, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/StatCard";
+import { hasPermission } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/utils";
-import type { StoreSummary } from "@/types";
+import type { PermissionKey, SessionUser, StoreSummary } from "@/types";
 
 const actions = [
-  { href: "/tienda/venta", label: "Vender", icon: ShoppingCart },
-  { href: "/tienda/inventario", label: "Ver inventario", icon: Boxes },
-  { href: "/tienda/merma", label: "Registrar merma", icon: AlertTriangle },
-  { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText },
-  { href: "/tienda/entrada", label: "Registrar producción", icon: PackagePlus, centralOnly: true },
-  { href: "/tienda/salida", label: "Enviar a tienda", icon: Truck, centralOnly: true }
-];
+  { href: "/tienda/venta", label: "Vender", icon: ShoppingCart, permission: "can_register_sales" },
+  { href: "/tienda/inventario", label: "Ver inventario", icon: Boxes, permission: "can_view_inventory" },
+  { href: "/tienda/merma", label: "Registrar merma", icon: AlertTriangle, permission: "can_register_waste" },
+  { href: "/tienda/cierre-dia", label: "Cierre del día", icon: ReceiptText, permission: "can_view_daily_summary" },
+  { href: "/tienda/entrada", label: "Registrar producción", icon: PackagePlus, centralOnly: true, permission: "can_register_entries" },
+  { href: "/tienda/salida", label: "Enviar a tienda", icon: Truck, centralOnly: true, permission: "can_register_transfers" }
+] satisfies Array<{ href: string; label: string; icon: typeof ShoppingCart; centralOnly?: boolean; permission: PermissionKey }>;
 
 export function StoreHome() {
   const [summary, setSummary] = useState<StoreSummary | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
-    fetch("/api/reports/store-summary", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((json) => {
-        if (json.success) setSummary(json.data);
-        else toast.error(json.error);
-      });
+    Promise.all([
+      fetch("/api/reports/store-summary", { cache: "no-store" }).then((response) => response.json()),
+      fetch("/api/auth/me", { cache: "no-store" }).then((response) => response.json())
+    ]).then(([summaryJson, userJson]) => {
+      if (summaryJson.success) setSummary(summaryJson.data);
+      else toast.error(summaryJson.error);
+      if (userJson.success) setUser(userJson.data);
+    });
   }, []);
 
   return (
@@ -38,7 +42,7 @@ export function StoreHome() {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {actions.filter((action) => !action.centralOnly || summary?.branchType === "Tienda central").map((action) => {
+        {actions.filter((action) => (!action.centralOnly || summary?.branchType === "Tienda central") && hasPermission(user, action.permission)).map((action) => {
           const Icon = action.icon;
           return (
             <Link key={action.href} href={action.href} className="rounded-lg border border-black/10 bg-white p-4 shadow-soft transition hover:-translate-y-0.5 hover:bg-cream-100">

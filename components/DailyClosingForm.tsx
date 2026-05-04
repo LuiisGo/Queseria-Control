@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { Calculator } from "lucide-react";
 import { toast } from "sonner";
+import { hasPermission } from "@/lib/permissions";
 import { formatCurrency } from "@/lib/utils";
-import type { StoreSummary } from "@/types";
+import type { SessionUser, StoreSummary } from "@/types";
 
 export function DailyClosingForm() {
   const [summary, setSummary] = useState<StoreSummary | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [values, setValues] = useState({
     cashReported: "0",
     transferReported: "0",
@@ -19,12 +21,14 @@ export function DailyClosingForm() {
   const difference = reported - systemTotal;
 
   useEffect(() => {
-    fetch("/api/reports/store-summary", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((json) => {
-        if (json.success) setSummary(json.data);
-        else toast.error(json.error);
-      });
+    Promise.all([
+      fetch("/api/reports/store-summary", { cache: "no-store" }).then((response) => response.json()),
+      fetch("/api/auth/me", { cache: "no-store" }).then((response) => response.json())
+    ]).then(([summaryJson, userJson]) => {
+      if (summaryJson.success) setSummary(summaryJson.data);
+      else toast.error(summaryJson.error);
+      if (userJson.success) setUser(userJson.data);
+    });
   }, []);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -43,6 +47,17 @@ export function DailyClosingForm() {
     const json = await response.json();
     if (json.success) toast.success("Cierre registrado.");
     else toast.error(json.error || "No se pudo registrar el cierre.");
+  }
+
+  if (user && !hasPermission(user, "can_view_daily_summary")) {
+    return (
+      <div className="space-y-5">
+        <section>
+          <h1 className="font-display text-3xl font-semibold tracking-normal">Cierre del día</h1>
+          <p className="mt-2 text-sm text-black/60">Tu usuario no tiene permiso para ver resumen o registrar cierre del día.</p>
+        </section>
+      </div>
+    );
   }
 
   return (

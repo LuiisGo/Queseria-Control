@@ -8,7 +8,7 @@ export const allStorePermissions: PermissionMap = {
   can_register_sales: true,
   can_register_entries: true,
   can_register_exits: true,
-  can_register_transfers: false,
+  can_register_transfers: true,
   can_register_waste: true,
   can_register_returns: true,
   can_apply_discounts: false,

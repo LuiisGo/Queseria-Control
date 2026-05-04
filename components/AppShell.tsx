@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -22,8 +23,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
+import { hasPermission } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
-import type { SessionUser } from "@/types";
+import type { PermissionKey, SessionUser, StoreSummary } from "@/types";
 
 const adminNav = [
   { href: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
@@ -44,18 +46,35 @@ const adminNav = [
 
 const storeNav = [
   { href: "/tienda/inicio", label: "Inicio", icon: Home },
-  { href: "/tienda/venta", label: "Venta", icon: ShoppingCart },
-  { href: "/tienda/inventario", label: "Inventario", icon: Boxes },
-  { href: "/tienda/merma", label: "Merma", icon: ClipboardList },
-  { href: "/tienda/cierre-dia", label: "Cierre", icon: ReceiptText },
-  { href: "/tienda/entrada", label: "Producción", icon: Wheat },
-  { href: "/tienda/salida", label: "Envíos", icon: Truck }
-];
+  { href: "/tienda/venta", label: "Venta", icon: ShoppingCart, permission: "can_register_sales" },
+  { href: "/tienda/inventario", label: "Inventario", icon: Boxes, permission: "can_view_inventory" },
+  { href: "/tienda/merma", label: "Merma", icon: ClipboardList, permission: "can_register_waste" },
+  { href: "/tienda/cierre-dia", label: "Cierre", icon: ReceiptText, permission: "can_view_daily_summary" },
+  { href: "/tienda/entrada", label: "Producción", icon: Wheat, permission: "can_register_entries", centralOnly: true },
+  { href: "/tienda/salida", label: "Envíos", icon: Truck, permission: "can_register_transfers", centralOnly: true }
+] satisfies Array<{ href: string; label: string; icon: typeof Home; permission?: PermissionKey; centralOnly?: boolean }>;
 
 export function AppShell({ children, user, mode }: { children: React.ReactNode; user: SessionUser; mode: "admin" | "store" }) {
   const pathname = usePathname();
   const router = useRouter();
-  const nav = mode === "admin" ? adminNav : storeNav;
+  const [storeSummary, setStoreSummary] = useState<StoreSummary | null>(null);
+  const nav = useMemo(() => {
+    if (mode === "admin") return adminNav;
+    return storeNav.filter((item) => {
+      if (item.permission && !hasPermission(user, item.permission)) return false;
+      if (item.centralOnly && storeSummary?.branchType !== "Tienda central") return false;
+      return true;
+    });
+  }, [mode, storeSummary?.branchType, user]);
+
+  useEffect(() => {
+    if (mode !== "store") return;
+    fetch("/api/reports/store-summary", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((json) => {
+        if (json.success) setStoreSummary(json.data);
+      });
+  }, [mode]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });

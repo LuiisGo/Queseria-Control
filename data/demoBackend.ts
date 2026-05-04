@@ -196,20 +196,45 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const role = (payload.role as "Admin" | "Tienda") || "Tienda";
         const username = String(payload.username || "").trim();
         if (!username) return error("Usuario es obligatorio.");
+        if (demoUsers.some((candidate) => candidate.username.toLowerCase() === username.toLowerCase())) return error("Ese usuario ya existe.");
+        const assignedBranches = Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : ["BR001"];
+        const permissions = payload.permissions && typeof payload.permissions === "object" ? (payload.permissions as typeof allStorePermissions) : allStorePermissions;
         const user: SessionUser = {
           id: nextId("USR", demoUsers.length),
           name: String(payload.name || username),
           username,
           role,
-          permissions: role === "Tienda" ? allStorePermissions : emptyPermissions,
-          assignedBranches: Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : ["BR001"],
-          active: true
+          permissions: role === "Tienda" ? { ...emptyPermissions, ...permissions } : emptyPermissions,
+          assignedBranches,
+          active: payload.active !== false
         };
         demoUsers.push(user);
         demoPasswords[username] = String(payload.password || "cambiar123");
         return success(user, "Usuario creado.");
       }
-      case "UPDATE_USER":
+      case "UPDATE_USER": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede actualizar usuarios.");
+        const user = demoUsers.find((candidate) => candidate.id === payload.id);
+        if (!user) return error("Usuario no encontrado.");
+        const username = String(payload.username || user.username).trim();
+        if (demoUsers.some((candidate) => candidate.id !== user.id && candidate.username.toLowerCase() === username.toLowerCase())) return error("Ese usuario ya existe.");
+        const role = (payload.role as "Admin" | "Tienda") || user.role;
+        const oldUsername = user.username;
+        user.name = String(payload.name || user.name);
+        user.username = username;
+        user.role = role;
+        user.active = payload.active !== undefined ? payload.active !== false : user.active;
+        user.assignedBranches = Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : user.assignedBranches;
+        user.permissions = role === "Tienda" && payload.permissions && typeof payload.permissions === "object" ? { ...emptyPermissions, ...(payload.permissions as typeof allStorePermissions) } : emptyPermissions;
+        if (payload.password) {
+          delete demoPasswords[oldUsername];
+          demoPasswords[username] = String(payload.password);
+        } else if (oldUsername !== username) {
+          demoPasswords[username] = demoPasswords[oldUsername] || "cambiar123";
+          delete demoPasswords[oldUsername];
+        }
+        return success(user, "Usuario actualizado.");
+      }
       case "DEACTIVATE_USER":
         return success(demoUsers, "Usuario actualizado.");
       case "LIST_BRANCHES":
@@ -280,6 +305,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const productId = String(payload.productId);
         const branchId = String(payload.branchId || user.assignedBranches[0]);
         assertAssignedBranch(user, branchId);
+        if (user.role === "Tienda" && !user.permissions.can_register_entries) return error("No tiene permiso para registrar producción o entradas.");
         if (getBranch(branchId)?.type !== "Tienda central") return error("Solo Central puede registrar producción.");
         const product = getProduct(productId);
         if (!product) return error("Producto no encontrado.");
@@ -315,6 +341,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const originBranchId = String(payload.originBranchId || "BR001");
         const destinationBranchId = String(payload.destinationBranchId || "");
         assertAssignedBranch(user, originBranchId);
+        if (user.role === "Tienda" && !user.permissions.can_register_transfers) return error("No tiene permiso para enviar producto a tiendas.");
         if (getBranch(originBranchId)?.type !== "Tienda central") return error("Los envíos a tiendas salen desde Central.");
         if (getBranch(destinationBranchId)?.type !== "Punto de venta / sucursal") return error("El destino debe ser una tienda/sucursal.");
         const items = normalizeItems((payload.items as SaleItem[]) || [], originBranchId);
@@ -429,6 +456,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (!user) return error("Sesión requerida.");
         const branchId = String(payload.branchId || user.assignedBranches[0]);
         assertAssignedBranch(user, branchId);
+        if (user.role === "Tienda" && !user.permissions.can_register_waste) return error("No tiene permiso para registrar merma.");
         const product = getProduct(String(payload.productId));
         if (!product) return error("Producto no encontrado.");
         const quantity = Number(payload.quantity || 0);
@@ -492,6 +520,8 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "REVIEW_CORRECTION_REQUEST":
         return success({ id: nextId("COR", 0), ...payload, status: action === "CREATE_CORRECTION_REQUEST" ? "Pendiente" : "Aprobada" });
       case "REGISTER_DAILY_CLOSING": {
+        const user = currentUser(payload);
+        if (user?.role === "Tienda" && !user.permissions.can_view_daily_summary) return error("No tiene permiso para cierre o resumen del día.");
         const systemTotal = Number(payload.systemTotal || 0);
         const reported = Number(payload.cashReported || 0) + Number(payload.transferReported || 0) + Number(payload.creditReported || 0);
         return success({ id: nextId("CLS", 1), ...payload, difference: reported - systemTotal, status: "Cerrado" }, "Cierre registrado.");
