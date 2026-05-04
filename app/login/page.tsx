@@ -61,9 +61,6 @@ export default function LoginPage() {
           <button className="btn-primary mt-5 w-full" disabled={loading}>
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
-          <p className="mt-4 rounded-lg bg-cream-100 p-3 text-xs leading-5 text-black/60">
-            Demo: admin/admin123 o tienda/tienda123. Desactiva `NEXT_PUBLIC_DEMO_MODE` para conectar Apps Script.
-          </p>
         </form>
       </section>
     </main>
