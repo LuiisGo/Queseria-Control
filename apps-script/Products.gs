@@ -6,6 +6,7 @@ function listProducts(payload) {
       code: row.Code,
       name: row.Name,
       imageUrl: row.Image_Url,
+      imageData: row.Image_Data || row.Image_Url || "",
       unit: row.Unit,
       presentation: row.Presentation,
       category: row.Category,
@@ -30,6 +31,7 @@ function createProduct(payload) {
     Code: id,
     Name: payload.name,
     Image_Url: payload.imageUrl || "",
+    Image_Data: payload.imageData || "",
     Unit: payload.unit || "unidad",
     Presentation: payload.presentation || "",
     Category: payload.category || "",
@@ -54,6 +56,7 @@ function updateProduct(payload) {
   var row = updateRow("Products", payload.id, {
     Name: payload.name,
     Image_Url: payload.imageUrl,
+    Image_Data: payload.imageData,
     Unit: payload.unit,
     Presentation: payload.presentation,
     Category: payload.category,

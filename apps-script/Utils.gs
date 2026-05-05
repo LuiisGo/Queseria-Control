@@ -171,3 +171,13 @@ function branchName(branchId) {
   var branch = getById("Branches", branchId);
   return branch ? branch.Name : branchId;
 }
+
+function branchType(branchId) {
+  var branch = getById("Branches", branchId);
+  return branch ? branch.Type : "";
+}
+
+function distributorName(distributorId) {
+  var distributor = getById("Distributors", distributorId);
+  return distributor ? distributor.Name : distributorId;
+}

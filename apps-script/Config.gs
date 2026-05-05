@@ -12,7 +12,7 @@ var SHEETS = {
   User_Branches: ["ID", "User_ID", "Branch_ID", "Created_At"],
   Permissions: ["ID", "User_ID", "Permission", "Enabled", "Updated_At"],
   Branches: ["ID", "Name", "Type", "Address", "Active", "Notes", "Created_At", "Updated_At"],
-  Products: ["ID", "Code", "Name", "Image_Url", "Unit", "Presentation", "Category", "Final_Price", "Distributor_Price", "Production_Cost", "Min_Stock", "Branch_Min_Stock_JSON", "Active", "Created_At", "Updated_At"],
+  Products: ["ID", "Code", "Name", "Image_Url", "Image_Data", "Unit", "Presentation", "Category", "Final_Price", "Distributor_Price", "Production_Cost", "Min_Stock", "Branch_Min_Stock_JSON", "Active", "Created_At", "Updated_At"],
   Product_Prices: ["ID", "Product_ID", "Price_Type", "Scope_Type", "Scope_ID", "Price", "Active", "Updated_At"],
   Price_History: ["ID", "Product_ID", "Price_Type", "Scope_Type", "Scope_ID", "Old_Price", "New_Price", "User_ID", "Changed_At", "Notes"],
   Distributors: ["ID", "Name", "Phone", "Email", "Address", "Active", "Special_Prices_JSON", "Notes", "Created_At", "Updated_At"],

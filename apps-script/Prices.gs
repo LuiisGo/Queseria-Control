@@ -18,7 +18,7 @@ function setPrice(payload) {
 
 function getPriceHistory(payload) {
   requireActiveUser(payload);
-  return success(getRows("Price_History").map(function(row) {
-    return { id: row.ID, productId: row.Product_ID, productName: productName(row.Product_ID), priceType: row.Price_Type, oldPrice: Number(row.Old_Price || 0), newPrice: Number(row.New_Price || 0), updatedAt: row.Changed_At };
+  return success(getRows("Products").map(function(row) {
+    return { id: row.ID, productId: row.ID, productName: row.Name, sku: row.Code, finalPrice: Number(row.Final_Price || 0), distributorPrice: Number(row.Distributor_Price || 0), updatedAt: row.Updated_At };
   }));
 }

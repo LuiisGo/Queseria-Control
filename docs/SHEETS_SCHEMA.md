@@ -41,4 +41,4 @@ Una sola Spreadsheet con pestañas por módulo.
 - Distributors: `DIST001`
 - Credits: `CRD001`
 
-Los headers exactos viven en `apps-script/Config.gs` y se crean automáticamente con `setupSpreadsheet()`.
+Los headers exactos viven en `apps-script/Config.gs` y se crean automáticamente con `setupSpreadsheet()`. `Products` incluye `Image_Data` para imagen subida en MVP y `Image_Url` para migración futura a Drive.

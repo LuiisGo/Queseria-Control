@@ -10,16 +10,22 @@ function registerTransfer(payload) {
   if (destination.Type === "Producción") throw new Error("Destino inválido para envío.");
   var transfer = { ID: nextId("Transfers", "TRF"), Date: nowIso(), User_ID: user.ID, Origin_Branch_ID: payload.originBranchId, Destination_Branch_ID: payload.destinationBranchId, Status: "Registrado", Difference_Note: "", Notes: payload.notes || "" };
   appendRow("Transfers", transfer);
+  var responseItems = [];
   payload.items.forEach(function(item) {
-    changeStock(item.productId, payload.originBranchId, -Number(item.quantity));
-    changeStock(item.productId, payload.destinationBranchId, Number(item.quantity), item.lotNumber || "", item.expiresAt || "", "Envío " + transfer.ID);
-    appendRow("Transfer_Items", { ID: nextId("Transfer_Items", "TRFI"), Transfer_ID: transfer.ID, Product_ID: item.productId, Quantity: Number(item.quantity), Lot_ID: item.lotId || "", Sent_Quantity: Number(item.quantity), Received_Quantity: Number(item.quantity), Difference: 0 });
+    var lotsUsed = changeStock(item.productId, payload.originBranchId, -Number(item.quantity));
+    lotsUsed.forEach(function(lot) {
+      changeStock(item.productId, payload.destinationBranchId, Number(lot.quantity), lot.lotNumber, lot.expiresAt || "", "Envío " + transfer.ID);
+    });
+    appendRow("Transfer_Items", { ID: nextId("Transfer_Items", "TRFI"), Transfer_ID: transfer.ID, Product_ID: item.productId, Quantity: Number(item.quantity), Lot_ID: lotsUsed[0] ? lotsUsed[0].lotId : "", Sent_Quantity: Number(item.quantity), Received_Quantity: Number(item.quantity), Difference: 0 });
+    responseItems.push({ productId: item.productId, productName: productName(item.productId), quantity: Number(item.quantity), lotsUsed: lotsUsed, lotId: lotsUsed[0] ? lotsUsed[0].lotId : "" });
   });
   logAudit(user, "REGISTER_TRANSFER", "Transfers", transfer.ID, null, payload, "");
-  return success(transfer, "Envío registrado.");
+  return success({ id: transfer.ID, date: transfer.Date, userId: transfer.User_ID, originBranchId: transfer.Origin_Branch_ID, originBranchName: branchName(transfer.Origin_Branch_ID), destinationBranchId: transfer.Destination_Branch_ID, destinationBranchName: branchName(transfer.Destination_Branch_ID), status: transfer.Status, notes: transfer.Notes, items: responseItems }, "Envío registrado.");
 }
 
 function listTransfers(payload) {
   requireActiveUser(payload);
-  return success(getRows("Transfers"));
+  return success(getRows("Transfers").map(function(row) {
+    return { id: row.ID, date: row.Date, userId: row.User_ID, originBranchId: row.Origin_Branch_ID, originBranchName: branchName(row.Origin_Branch_ID), destinationBranchId: row.Destination_Branch_ID, destinationBranchName: branchName(row.Destination_Branch_ID), status: row.Status, notes: row.Notes };
+  }));
 }

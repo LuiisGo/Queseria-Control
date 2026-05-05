@@ -3,11 +3,11 @@ function registerWaste(payload) {
   assertPermission(user, "can_register_waste");
   requireFields(payload, ["branchId", "productId", "quantity", "reason"]);
   assertBranchAccess(user, payload.branchId);
-  changeStock(payload.productId, payload.branchId, -Number(payload.quantity));
-  var row = { ID: nextId("Waste", "WST"), Date: nowIso(), User_ID: user.ID, Branch_ID: payload.branchId, Product_ID: payload.productId, Lot_ID: payload.lotId || "", Quantity: Number(payload.quantity), Reason: payload.reason, Notes: payload.notes || "" };
+  var lotsUsed = changeStock(payload.productId, payload.branchId, -Number(payload.quantity));
+  var row = { ID: nextId("Waste", "WST"), Date: nowIso(), User_ID: user.ID, Branch_ID: payload.branchId, Product_ID: payload.productId, Lot_ID: lotsUsed[0] ? lotsUsed[0].lotId : "", Quantity: Number(payload.quantity), Reason: payload.reason, Notes: payload.notes || "" };
   appendRow("Waste", row);
   logAudit(user, "REGISTER_WASTE", "Waste", row.ID, null, row, "");
-  return success(row, "Pérdida registrada.");
+  return success({ id: row.ID, date: row.Date, userId: row.User_ID, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), productId: row.Product_ID, productName: productName(row.Product_ID), lotId: row.Lot_ID, lotsUsed: lotsUsed, quantity: Number(row.Quantity || 0), reason: row.Reason, notes: row.Notes }, "Pérdida registrada.");
 }
 
 function listWaste(payload) {

@@ -36,6 +36,7 @@ Credenciales demo:
 
 - Admin: `admin` / `admin123`
 - Tienda: `tienda` / `tienda123`
+- Agromarket 1: `agromarket1` / `agromarket123`
 
 En demo mode no necesitas `APPS_SCRIPT_WEB_APP_URL`.
 
@@ -52,6 +53,8 @@ En demo mode no necesitas `APPS_SCRIPT_WEB_APP_URL`.
 7. Acepta permisos.
 
 `setupSpreadsheet()` crea las 25 pestañas, headers, settings base, ubicaciones iniciales y un admin inicial `admin/admin123`. Cambia esa contraseña en cuanto conectes datos reales.
+
+Guía completa: [`docs/IMPLEMENTACION_REAL_APPS_SCRIPT.md`](docs/IMPLEMENTACION_REAL_APPS_SCRIPT.md).
 
 ## Desplegar Apps Script
 

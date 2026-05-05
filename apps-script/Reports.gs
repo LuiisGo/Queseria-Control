@@ -22,7 +22,7 @@ function getAdminDashboard(payload) {
     topProducts: [],
     topDistributors: [],
     lowStock: inventory.filter(function(row) { return row.quantity <= row.minStock; }),
-    expiringLots: getRows("Inventory_Lots"),
+    expiringLots: getRows("Inventory_Lots").filter(function(lot) { return Number(lot.Quantity || 0) > 0; }).map(mapLot),
     pendingCredits: credits.filter(function(row) { return row.balance > 0; })
   });
 }
@@ -42,7 +42,19 @@ function getStoreDailySummary(payload) {
   assertBranchAccess(user, branchId);
   var sales = getRows("Sales").filter(function(row) { return row.Branch_ID === branchId; });
   var inventory = listInventory(Object.assign({}, payload, { currentUser: { id: user.ID } })).data;
-  return success({ branchName: branchName(branchId), salesToday: sales.reduce(function(sum, row) { return sum + Number(row.Total || 0); }, 0), productsSold: [], inventory: inventory, movementsToday: sales.length, closingStatus: "Pendiente", alerts: inventory.filter(function(row) { return row.quantity <= row.minStock; }).map(function(row) { return "Stock bajo: " + row.productName; }) });
+  var expiringAlerts = [];
+  inventory.forEach(function(item) {
+    (item.lots || []).forEach(function(lot) {
+      if (isExpiringSoon(lot.expiresAt)) expiringAlerts.push("El lote " + lot.lotNumber + " de " + item.productName + " vence el " + lot.expiresAt + " y tiene " + lot.quantity + " unidades en " + branchName(branchId) + ".");
+    });
+  });
+  return success({ branchName: branchName(branchId), branchType: branchType(branchId), salesToday: sales.reduce(function(sum, row) { return sum + Number(row.Total || 0); }, 0), productsSold: [], inventory: inventory, movementsToday: sales.length, closingStatus: "Pendiente", alerts: inventory.filter(function(row) { return row.quantity <= row.minStock; }).map(function(row) { return "Stock bajo: " + row.productName; }).concat(expiringAlerts) });
+}
+
+function isExpiringSoon(expiresAt) {
+  if (!expiresAt) return false;
+  var days = (new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+  return days >= 0 && days <= 10;
 }
 
 function exportReportData(payload) {

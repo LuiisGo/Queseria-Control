@@ -14,8 +14,14 @@ function registerSale(payload) {
     var discount = Number(item.discount || 0);
     if (discount > 0) assertPermission(user, "can_apply_discounts");
     var lineSubtotal = Number(item.quantity) * price - discount;
-    changeStock(item.productId, payload.branchId, -Number(item.quantity));
-    appendRow("Sale_Items", { ID: nextId("Sale_Items", "SI"), Sale_ID: saleId, Product_ID: item.productId, Quantity: Number(item.quantity), Price: price, Discount: discount, Subtotal: lineSubtotal, Lot_ID: item.lotId || "" });
+    var lotsUsed = changeStock(item.productId, payload.branchId, -Number(item.quantity));
+    appendRow("Sale_Items", { ID: nextId("Sale_Items", "SI"), Sale_ID: saleId, Product_ID: item.productId, Quantity: Number(item.quantity), Price: price, Discount: discount, Subtotal: lineSubtotal, Lot_ID: lotsUsed[0] ? lotsUsed[0].lotId : "" });
+    item.productName = product.Name;
+    item.price = price;
+    item.discount = discount;
+    item.subtotal = lineSubtotal;
+    item.lotsUsed = lotsUsed;
+    item.lotId = lotsUsed[0] ? lotsUsed[0].lotId : "";
     subtotal += Number(item.quantity) * price;
     discountTotal += discount;
     estimatedCost += Number(product.Production_Cost || 0) * Number(item.quantity);
@@ -25,7 +31,7 @@ function registerSale(payload) {
   appendRow("Sales", row);
   if (payload.paymentMethod === "Crédito" && payload.distributorId) createCreditFromSale(row);
   logAudit(user, "REGISTER_SALE", "Sales", saleId, null, row, "");
-  return success(row, "Venta registrada.");
+  return success({ id: row.ID, date: row.Date, userId: row.User_ID, userName: user.Name, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), customerType: row.Customer_Type, distributorId: row.Distributor_ID, distributorName: row.Distributor_ID ? distributorName(row.Distributor_ID) : "", paymentMethod: row.Payment_Method, items: payload.items, subtotal: subtotal, discountTotal: discountTotal, total: total, estimatedCost: estimatedCost, estimatedProfit: total - estimatedCost, status: row.Status, notes: row.Notes }, "Venta registrada.");
 }
 
 function resolvePrice(productId, customerType, distributorId, branchId) {
@@ -42,6 +48,6 @@ function listSales(payload) {
   var user = requireActiveUser(payload);
   var branches = user.Role === "Admin" ? null : userAssignedBranches(user.ID);
   return success(getRows("Sales").filter(function(row) { return !branches || branches.indexOf(row.Branch_ID) > -1; }).map(function(row) {
-    return { id: row.ID, date: row.Date, branchName: branchName(row.Branch_ID), customerType: row.Customer_Type, paymentMethod: row.Payment_Method, total: Number(row.Total || 0), estimatedProfit: Number(row.Estimated_Profit || 0), status: row.Status };
+    return { id: row.ID, date: row.Date, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), customerType: row.Customer_Type, distributorId: row.Distributor_ID, distributorName: row.Distributor_ID ? distributorName(row.Distributor_ID) : "", paymentMethod: row.Payment_Method, total: Number(row.Total || 0), estimatedProfit: Number(row.Estimated_Profit || 0), status: row.Status };
   }));
 }
