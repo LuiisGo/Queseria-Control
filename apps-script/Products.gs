@@ -25,7 +25,7 @@ function listProducts(payload) {
 function createProduct(payload) {
   var admin = requireAdmin(payload);
   requireFields(payload, ["name"]);
-  var id = nextProductSku(payload.name, payload.productionDate || payload.createdAt || "");
+  var id = nextProductSku(payload.name, "");
   var row = {
     ID: id,
     Code: id,

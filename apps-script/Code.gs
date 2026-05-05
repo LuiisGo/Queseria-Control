@@ -45,6 +45,8 @@ function doPost(e) {
       case "SETUP_SPREADSHEET": data = setupSpreadsheet(); break;
       case "GET_SETTINGS": data = getSettings(payload); break;
       case "SET_SETTINGS": data = setSettings(payload); break;
+      case "RUN_NOTIFICATION_CHECKS": data = success(runDailyNotificationChecks()); break;
+      case "INSTALL_NOTIFICATION_TRIGGER": data = installDailyNotificationTrigger(); break;
       default: throw new Error("Acción no soportada: " + action);
     }
 

@@ -141,38 +141,41 @@ function AdminProductionFlow({ data, onDone }: { data: AdminData; onDone: () => 
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [lotNumber, setLotNumber] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
   const product = data.products.find((item) => item.id === productId);
+  const productionDate = todayInputDate();
+  const expiresAt = addDaysInputDate(productionDate, 16);
 
   async function submit() {
-    if (!central || !product || !lotNumber || !expiresAt || quantity <= 0) return toast.error("Completa producto, cantidad, lote y vencimiento.");
+    if (!central || !product || !lotNumber || quantity <= 0) return toast.error("Completa producto, cantidad y lote.");
     setSaving(true);
-    const response = await postJson("/api/production", { branchId: central.id, productId, quantity, lotNumber, expiresAt });
+    const response = await postJson("/api/production", { branchId: central.id, productId, quantity, lotNumber });
     setSaving(false);
     if (response.success) {
       toast.success("Producción guardada.");
       setProductId("");
       setQuantity(1);
       setLotNumber("");
-      setExpiresAt("");
       await onDone();
     } else toast.error(response.error || "No se pudo guardar.");
   }
 
   return (
-    <EasyPanel title="Registrar producción" subtitle="El producto entra a Central y queda ordenado por lote para FIFO.">
+    <EasyPanel title="Registrar producción" subtitle="El producto entra a Central con fecha del sistema y vencimiento automático a 16 días.">
       <Step title="1. Producto producido">
         <ProductPicker products={data.products} inventory={data.inventory} branchId={central?.id || ""} selectedId={productId} onSelect={setProductId} showStock={false} />
       </Step>
-      <Step title="2. Cantidad, lote y vencimiento">
-        <div className="grid gap-3 md:grid-cols-[0.8fr_1fr_1fr]">
+      <Step title="2. Cantidad, lote y vencimiento automático">
+        <div className="grid gap-3 md:grid-cols-[0.8fr_1fr_1fr_1fr]">
           <QuantityPicker value={quantity} onChange={setQuantity} />
           <Field label="SKU de lote">
             <input className="field" value={lotNumber} onChange={(event) => setLotNumber(event.target.value)} placeholder="001" />
           </Field>
-          <Field label="Vencimiento">
-            <input className="field" type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
+          <Field label="Producción automática">
+            <input className="field bg-cream-100 text-black/60" value={productionDate} readOnly />
+          </Field>
+          <Field label="Vence automático">
+            <input className="field bg-cream-100 text-black/60" value={expiresAt} readOnly />
           </Field>
         </div>
       </Step>
@@ -180,7 +183,7 @@ function AdminProductionFlow({ data, onDone }: { data: AdminData; onDone: () => 
         title="Confirmar producción"
         lines={[product ? `${sku(product)} · ${product.name}` : "Elegí producto", `Cantidad: ${quantity}`, `Destino: ${central?.name || "Central"}`, `Lote: ${lotNumber || "pendiente"}`]}
         action="Guardar producción"
-        disabled={!product || !lotNumber || !expiresAt || saving}
+        disabled={!product || !lotNumber || saving}
         onConfirm={submit}
       />
     </EasyPanel>
@@ -461,4 +464,15 @@ async function postJson(path: string, body: Record<string, unknown>) {
     body: JSON.stringify(body)
   });
   return response.json();
+}
+
+function todayInputDate() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDaysInputDate(value: string, days: number) {
+  const date = value ? new Date(`${value}T00:00:00`) : new Date();
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }

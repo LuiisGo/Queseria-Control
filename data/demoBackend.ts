@@ -47,9 +47,33 @@ function productPrefix(name: string) {
 }
 
 function dateCode(value?: string) {
-  const date = value ? new Date(value) : new Date();
+  const date = parseDate(value);
   if (Number.isNaN(date.getTime())) return "260504";
   return `${String(date.getFullYear()).slice(2)}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function dateOnly(value?: string) {
+  const date = parseDate(value);
+  if (Number.isNaN(date.getTime())) return dateOnly();
+  return formatInputDate(date);
+}
+
+function addDaysDate(value: string | undefined, days: number) {
+  const date = parseDate(value);
+  date.setDate(date.getDate() + days);
+  return formatInputDate(date);
+}
+
+function parseDate(value?: string) {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
+  return value ? new Date(value) : new Date();
+}
+
+function formatInputDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function nextProductSku(name: string, productionDate?: string) {
@@ -291,7 +315,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "CREATE_PRODUCT": {
         if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede crear productos.");
         const name = String(payload.name || "Nuevo producto");
-        const sku = nextProductSku(name, String(payload.productionDate || payload.createdAt || ""));
+        const sku = nextProductSku(name);
         const product: Product = {
           id: sku,
           code: sku,
@@ -345,14 +369,16 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         if (quantity <= 0) return error("Cantidad inválida.");
         const lotNumber = String(payload.lotNumber || "").trim();
         if (!lotNumber) return error("Código de lote es obligatorio.");
+        const productionDate = dateOnly(todayIso());
+        const expiresAt = addDaysDate(productionDate, 16);
         applyStock(product.id, branchId, quantity, {
           lotNumber,
-          expiresAt: String(payload.expiresAt || ""),
+          expiresAt,
           notes: String(payload.notes || "")
         });
         const record = {
           id: nextId("PROD", demoProduction.length),
-          date: todayIso(),
+          date: productionDate,
           userId: user.id,
           branchId,
           branchName: getBranch(branchId)?.name || branchId,
@@ -361,7 +387,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
           quantity,
           unitCost: Number(payload.unitCost || product.productionCost),
           lotNumber,
-          expiresAt: String(payload.expiresAt || ""),
+          expiresAt,
           notes: String(payload.notes || "")
         };
         demoProduction.push(record);

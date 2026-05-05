@@ -91,9 +91,30 @@ function productPrefix(name) {
 }
 
 function dateCode(value) {
-  var date = value ? new Date(value) : new Date();
+  var date = parseLocalDate(value);
   if (isNaN(date.getTime())) date = new Date();
   return Utilities.formatDate(date, CONFIG.TIMEZONE, "yyMMdd");
+}
+
+function dateOnly(value) {
+  var date = parseLocalDate(value);
+  if (isNaN(date.getTime())) date = new Date();
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, "yyyy-MM-dd");
+}
+
+function addDaysDate(value, days) {
+  var date = parseLocalDate(value);
+  if (isNaN(date.getTime())) date = new Date();
+  date.setDate(date.getDate() + Number(days || 0));
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, "yyyy-MM-dd");
+}
+
+function parseLocalDate(value) {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+    var parts = String(value).split("-");
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+  return value ? new Date(value) : new Date();
 }
 
 function nextProductSku(name, productionDate) {

@@ -11,6 +11,7 @@ function setupSpreadsheet() {
   appendRow("Settings", { Key: "allow_negative_stock", Value: "false", Description: "Permite vender sin stock disponible", Updated_At: nowIso() });
   appendRow("Settings", { Key: "admin_emails", Value: "", Description: "Correos separados por coma para notificaciones", Updated_At: nowIso() });
   appendRow("Settings", { Key: "notification_low_stock", Value: "true", Description: "Notificación stock bajo", Updated_At: nowIso() });
+  appendRow("Settings", { Key: "notification_expiring_lots", Value: "true", Description: "Notificación 2 días antes del vencimiento de lote", Updated_At: nowIso() });
 
   appendRow("Branches", { ID: "AGM001", Name: "Central", Type: "Tienda central", Address: "Central", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
   appendRow("Branches", { ID: "AGM002", Name: "Agromarket 1", Type: "Punto de venta / sucursal", Address: "Agromarket 1", Active: true, Created_At: nowIso(), Updated_At: nowIso() });

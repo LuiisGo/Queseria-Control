@@ -257,5 +257,5 @@ export function buildStoreSummary(branchId = "AGM001"): StoreSummary {
 function isExpiringSoon(expiresAt?: string) {
   if (!expiresAt) return false;
   const days = (new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-  return days >= 0 && days <= 10;
+  return days >= 0 && days <= 2;
 }

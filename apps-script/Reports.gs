@@ -1,5 +1,6 @@
 function getAdminDashboard(payload) {
   requireAdmin(payload);
+  checkExpirationNotifications();
   var sales = getRows("Sales");
   var inventory = listInventory(payload).data;
   var credits = listCredits(payload).data;
@@ -113,6 +114,7 @@ function aggregateSalesBy(key, sales, labelFn) {
 
 function getStoreDailySummary(payload) {
   var user = requireActiveUser(payload);
+  checkExpirationNotifications();
   var branchId = payload.branchId || userAssignedBranches(user.ID)[0];
   assertBranchAccess(user, branchId);
   var sales = getRows("Sales").filter(function(row) { return row.Branch_ID === branchId; });
@@ -129,7 +131,7 @@ function getStoreDailySummary(payload) {
 function isExpiringSoon(expiresAt) {
   if (!expiresAt) return false;
   var days = (new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-  return days >= 0 && days <= 10;
+  return days >= 0 && days <= 2;
 }
 
 function exportReportData(payload) {

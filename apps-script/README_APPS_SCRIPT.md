@@ -74,3 +74,5 @@ Errores:
 Apps Script valida `APP_SECRET`, usuario activo, rol, permisos, sucursal asignada, stock, lotes FIFO y precios oficiales. Las contraseñas usan SHA-256 con salt por limitaciones del entorno; para una versión más fuerte, migrar a un proveedor de auth o un backend con bcrypt/argon2.
 
 Las imágenes subidas se guardan como `Image_Data` en Sheets para MVP. Para operación con muchas imágenes, moverlas a Google Drive y guardar solo URL.
+
+Producción usa la fecha del sistema como fecha de producción y calcula vencimiento automáticamente 16 días después. Las notificaciones de vencimiento se crean cuando faltan 2 días o menos. Ejecuta `installDailyNotificationTrigger()` una vez si quieres revisión diaria automática.

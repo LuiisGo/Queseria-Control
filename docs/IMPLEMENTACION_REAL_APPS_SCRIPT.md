@@ -174,7 +174,7 @@ Después:
 
 1. `Productos`: revisa SKU, nombres, imágenes y precios.
 2. `Usuarios`: crea usuarios por ubicación.
-3. `Operar > Registrar producción`: entra inventario a Central con lote y vencimiento.
+3. `Operar > Registrar producción`: entra inventario a Central con lote. El sistema usa la fecha del día como fecha de producción y calcula vencimiento automático 16 días después.
 4. `Operar > Enviar a tienda`: mueve inventario de Central a sucursal.
 5. `Tienda > Venta`: descuenta inventario por FIFO.
 6. `Operar > Venta a distribuidor`: registra ventas a Mazate/CAES; si es crédito, crea cuenta por cobrar.
@@ -216,4 +216,6 @@ NEXT_PUBLIC_DEMO_MODE=false
 - Apps Script valida secreto, usuario activo, permisos, sucursal asignada, stock y precios.
 - Las imágenes subidas se guardan como `Image_Data` en Sheets para MVP. Para producción con muchas imágenes, conviene migrarlas a Google Drive y guardar solo el enlace.
 - Los movimientos de salida usan FIFO por vencimiento de lote.
+- Las notificaciones de vencimiento se crean cuando faltan 2 días o menos para el vencimiento del lote.
+- Para revisión automática diaria, en Apps Script ejecuta una vez `installDailyNotificationTrigger()`. Esto instala un trigger diario a las 7:00 para revisar vencimientos.
 - `setupSpreadsheet()` es destructivo porque reinicia pestañas.

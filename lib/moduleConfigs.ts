@@ -44,7 +44,6 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "presentation", label: "Presentación" },
       { name: "category", label: "Categoría" },
       { name: "unit", label: "Unidad", placeholder: "unidad" },
-      { name: "productionDate", label: "Fecha para SKU", type: "date" },
       { name: "finalPrice", label: "Precio final", type: "number", defaultValue: "0", required: true },
       { name: "distributorPrice", label: "Precio distribuidor", type: "number" },
       { name: "productionCost", label: "Costo producción", type: "number" },
@@ -131,7 +130,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   produccion: {
     title: "Producción",
-    description: "Central y Admin registran producto terminado con código de lote, vencimiento y entrada automática a inventario.",
+    description: "Central y Admin registran producto terminado con código de lote. El vencimiento se calcula automáticamente 16 días después de la producción.",
     endpoint: "/api/production",
     columns: [
       { key: "id", label: "ID" },
@@ -139,7 +138,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "branchName", label: "Destino" },
       { key: "quantity", label: "Cantidad" },
       { key: "lotNumber", label: "Código de lote" },
-      { key: "expiresAt", label: "Vence" }
+      { key: "expiresAt", label: "Vence automático" }
     ],
     fields: [
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
@@ -147,7 +146,6 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "unitCost", label: "Costo unitario", type: "number" },
       { name: "lotNumber", label: "Código de lote" },
-      { name: "expiresAt", label: "Vencimiento", type: "date" },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
     transformSubmit: (values) => ({ ...values, quantity: Number(values.quantity), unitCost: Number(values.unitCost) })

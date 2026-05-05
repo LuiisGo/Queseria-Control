@@ -83,6 +83,8 @@ El navegador nunca recibe `APP_SECRET`; todo request pasa primero por `/api/*`.
 - Ubicaciones: `AGM001`, `AGM002`, etc.
 - Distribuidores: `ALIS001`, `ALIS002`, etc.
 
+En producción, el sistema usa la fecha del día en que se registra la producción y asigna vencimiento automático 16 días después. Las alertas/notificaciones de vencimiento salen cuando faltan 2 días o menos.
+
 ## Netlify
 
 Este repo incluye `netlify.toml` con `@netlify/plugin-nextjs`.

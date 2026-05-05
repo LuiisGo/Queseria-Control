@@ -106,30 +106,30 @@ export function StoreProductionFlow() {
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [lotNumber, setLotNumber] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
   const product = state.products.find((item) => item.id === productId);
   const central = state.branches.find((branch) => branch.type === "Tienda central");
   const isCentral = state.summary?.branchType === "Tienda central";
+  const productionDate = todayInputDate();
+  const expiresAt = addDaysInputDate(productionDate, 16);
   if (state.user && !hasPermission(state.user, "can_register_entries")) return <BlockedFlow title="Registrar producción" permission="can_register_entries" />;
 
   async function submit() {
-    if (!product || quantity <= 0 || !lotNumber || !expiresAt) return toast.error("Completa producto, cantidad, lote y vencimiento.");
+    if (!product || quantity <= 0 || !lotNumber) return toast.error("Completa producto, cantidad y lote.");
     setSaving(true);
-    const response = await postJson("/api/production", { productId, branchId: central?.id, quantity, lotNumber, expiresAt });
+    const response = await postJson("/api/production", { productId, branchId: central?.id, quantity, lotNumber });
     setSaving(false);
     if (response.success) {
       toast.success("Producción guardada y sumada a Central.");
       setProductId("");
       setQuantity(1);
       setLotNumber("");
-      setExpiresAt("");
       void reload();
     } else toast.error(response.error || "No se pudo guardar.");
   }
 
   return (
-    <EasyShell title="Registrar producción" subtitle="Esto suma inventario a Central con código de lote y vencimiento.">
+    <EasyShell title="Registrar producción" subtitle="Esto suma inventario a Central. El sistema asigna la fecha de hoy y vence automáticamente en 16 días.">
       {!isCentral && state.summary ? (
         <section className="panel p-4">
           <h2 className="text-lg font-semibold">Producción solo en Central</h2>
@@ -144,15 +144,19 @@ export function StoreProductionFlow() {
       <Step title="2. ¿Cuántas unidades?">
         <QuantityPicker value={quantity} onChange={setQuantity} />
       </Step>
-      <Step title="3. Lote y vencimiento">
-        <div className="grid gap-3 sm:grid-cols-2">
+      <Step title="3. Lote y vencimiento automático">
+        <div className="grid gap-3 sm:grid-cols-3">
           <label>
             <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-black/50">Código de lote</span>
             <input className="field" value={lotNumber} onChange={(event) => setLotNumber(event.target.value)} placeholder="001" />
           </label>
           <label>
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-black/50">Fecha de vencimiento</span>
-            <input className="field" type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-black/50">Producción automática</span>
+            <input className="field bg-cream-100 text-black/60" value={productionDate} readOnly />
+          </label>
+          <label>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-black/50">Vence automático</span>
+            <input className="field bg-cream-100 text-black/60" value={expiresAt} readOnly />
           </label>
         </div>
       </Step>
@@ -160,7 +164,7 @@ export function StoreProductionFlow() {
         title="Confirmar producción"
         lines={[product ? `${quantity} ${product.name}` : "Elige un producto", `Lote: ${lotNumber || "pendiente"}`, `Vence: ${expiresAt || "pendiente"}`, "Destino: Central"]}
         action="Guardar producción"
-        disabled={!product || !lotNumber || !expiresAt || saving}
+        disabled={!product || !lotNumber || saving}
         onConfirm={submit}
       />
         </>
@@ -474,5 +478,16 @@ async function postJson(path: string, body: Record<string, unknown>) {
 function isSoon(expiresAt?: string) {
   if (!expiresAt) return false;
   const days = (new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-  return days >= 0 && days <= 10;
+  return days >= 0 && days <= 2;
+}
+
+function todayInputDate() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDaysInputDate(value: string, days: number) {
+  const date = value ? new Date(`${value}T00:00:00`) : new Date();
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
