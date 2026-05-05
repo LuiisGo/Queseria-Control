@@ -49,10 +49,13 @@ En demo mode no necesitas `APPS_SCRIPT_WEB_APP_URL`.
 5. En `Project Settings > Script Properties`, agrega:
    - `APP_SECRET`: el mismo valor que usarás en Netlify.
    - Opcional `SPREADSHEET_ID`: ID de tu Google Sheet si el script no está ligado a la hoja.
+   - `INITIAL_ADMIN_PASSWORD`: contraseña inicial del admin real.
+   - `INITIAL_CENTRAL_PASSWORD`: contraseña inicial del usuario `tienda`.
+   - `INITIAL_AGROMARKET_PASSWORD`: contraseña inicial del usuario `agromarket1`.
 6. Ejecuta `setupSpreadsheet()` desde Apps Script.
 7. Acepta permisos.
 
-`setupSpreadsheet()` crea las 25 pestañas, headers, settings base, ubicaciones iniciales y un admin inicial `admin/admin123`. Cambia esa contraseña en cuanto conectes datos reales.
+`setupSpreadsheet()` crea las 25 pestañas, headers, settings base, ubicaciones iniciales y usuarios iniciales. No hardcodees contraseñas reales en el código.
 
 Guía completa: [`docs/IMPLEMENTACION_REAL_APPS_SCRIPT.md`](docs/IMPLEMENTACION_REAL_APPS_SCRIPT.md).
 
@@ -114,7 +117,7 @@ npm run build
 
 1. Activa Apps Script y ejecuta `setupSpreadsheet()`.
 2. Configura `.env.local` o Netlify con `NEXT_PUBLIC_DEMO_MODE=false`.
-3. Entra con `admin/admin123`.
+3. Entra con `admin` y la contraseña que pusiste en `INITIAL_ADMIN_PASSWORD`.
 4. Crea ubicaciones reales.
 5. Crea productos.
 6. Crea usuarios tienda, asigna ubicaciones y permisos.

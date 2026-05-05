@@ -100,7 +100,8 @@ El setup crea:
 - Ubicaciones iniciales: `AGM001 Central`, `AGM002 Agromarket 1`.
 - Productos iniciales con SKU `QG260504` a `CB260504`.
 - Distribuidores `ALIS001 Mazate`, `ALIS002 CAES`.
-- Admin inicial: `admin / admin123`.
+- Usuarios iniciales: `admin`, `tienda` y `agromarket1`.
+- Contraseñas iniciales: se leen desde `INITIAL_ADMIN_PASSWORD`, `INITIAL_CENTRAL_PASSWORD` e `INITIAL_AGROMARKET_PASSWORD` en Script Properties.
 
 Formato de IDs:
 
@@ -156,11 +157,7 @@ http://localhost:3000
 
 ## 8. Primer login real
 
-Usa:
-
-```txt
-admin / admin123
-```
+Usa el usuario `admin` con la contraseña definida en `INITIAL_ADMIN_PASSWORD`.
 
 Después:
 

@@ -26,13 +26,14 @@ Configura:
 
 1. Copia todos los `.gs`.
 2. Guarda el proyecto.
-3. Ejecuta `setupSpreadsheet()`.
-4. Autoriza permisos.
-5. Despliega como Web App.
+3. En Project Settings > Script Properties define `APP_SECRET`, `SPREADSHEET_ID`, `INITIAL_ADMIN_PASSWORD`, `INITIAL_CENTRAL_PASSWORD` e `INITIAL_AGROMARKET_PASSWORD`.
+4. Ejecuta `setupSpreadsheet()`.
+5. Autoriza permisos.
+6. Despliega como Web App.
 
 `setupSpreadsheet()` es destructivo: limpia y recrea pestañas. Úsalo para inicializar, no para actualizar una hoja con datos reales.
 
-El setup inicial crea `Central`, `Agromarket 1`, productos SKU `QG260504` a `CB260504`, distribuidores `Mazate` y `CAES`, y el admin `admin/admin123`.
+El setup inicial crea `Central`, `Agromarket 1`, productos SKU `QG260504` a `CB260504`, distribuidores `Mazate` y `CAES`, y usuarios iniciales `admin`, `tienda` y `agromarket1` usando las contraseñas guardadas en Script Properties.
 
 Formato de códigos:
 
