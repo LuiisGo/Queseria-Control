@@ -31,7 +31,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     endpoint: "/api/products",
     columns: [
       { key: "imageData", label: "Imagen", render: imageThumb },
-      { key: "code", label: "Código" },
+      { key: "code", label: "SKU" },
       { key: "name", label: "Producto" },
       { key: "presentation", label: "Presentación" },
       { key: "category", label: "Categoría" },
@@ -207,7 +207,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     })
   },
   distribuidores: {
-    title: "Distribuidores",
+    title: "Clientes distribuidores",
     description: "Mayoristas con datos de contacto, notas y estructura para precios especiales.",
     endpoint: "/api/distributors",
     columns: [

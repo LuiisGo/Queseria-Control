@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Boxes,
-  Building2,
   ClipboardList,
   CreditCard,
   Home,
@@ -18,7 +17,6 @@ import {
   Store,
   Truck,
   Users,
-  WalletCards,
   Wheat
 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,18 +26,13 @@ import { cn } from "@/lib/utils";
 import type { PermissionKey, SessionUser, StoreSummary } from "@/types";
 
 const adminNav = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
-  { href: "/admin/productos", label: "Productos", icon: Package },
-  { href: "/admin/ubicaciones", label: "Ubicaciones", icon: Building2 },
-  { href: "/admin/usuarios", label: "Usuarios", icon: Users },
-  { href: "/admin/precios", label: "Precios", icon: WalletCards },
+  { href: "/admin/dashboard", label: "Resumen", icon: BarChart3 },
+  { href: "/admin/operar", label: "Operar", icon: Wheat },
   { href: "/admin/inventario", label: "Inventario", icon: Boxes },
-  { href: "/admin/produccion", label: "Producción", icon: Wheat },
-  { href: "/admin/envios", label: "Envíos", icon: Truck },
-  { href: "/admin/ventas", label: "Ventas", icon: ShoppingCart },
-  { href: "/admin/distribuidores", label: "Distribuidores", icon: Store },
+  { href: "/admin/productos", label: "Productos", icon: Package },
+  { href: "/admin/distribuidores", label: "Clientes", icon: Store },
   { href: "/admin/creditos", label: "Créditos", icon: CreditCard },
-  { href: "/admin/mermas", label: "Pérdidas", icon: ClipboardList },
+  { href: "/admin/usuarios", label: "Usuarios", icon: Users },
   { href: "/admin/reportes", label: "Reportes", icon: ReceiptText },
   { href: "/admin/configuracion", label: "Config", icon: Settings }
 ];

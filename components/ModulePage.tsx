@@ -203,6 +203,12 @@ function optionLabel(option: Record<string, unknown>, source: NonNullable<FieldC
   if (source === "credits") {
     return `${option.distributorName || option.id} - ${option.status || "Crédito"}`;
   }
+  if (source === "products") {
+    return `SKU ${option.code || option.id} · ${option.name || option.productName || option.id}`;
+  }
+  if (source === "branches" || source === "distributors") {
+    return `${option.id} · ${option.name || option.productName || option.id}`;
+  }
   return String(option.name || option.productName || option.id);
 }
 

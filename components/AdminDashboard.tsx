@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { AlertTriangle, Boxes, CreditCard, HandCoins, PackageCheck, TrendingUp, Truck, Wheat } from "lucide-react";
+import { AlertTriangle, ArrowRight, Boxes, CreditCard, HandCoins, PackageCheck, ShoppingCart, TrendingUp, Truck, Users, Wheat } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { DataTable } from "@/components/DataTable";
@@ -10,6 +11,13 @@ import { formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "@/types";
 
 const colors = ["#171615", "#dec48f", "#8f7652", "#c5a269", "#f1dfbd"];
+
+const adminActions = [
+  { href: "/admin/operar", label: "Operar ahora", helper: "Producción, envío, venta y pérdida", icon: Wheat },
+  { href: "/admin/productos", label: "Productos y precios", helper: "SKU, imagen, stock mínimo y precios", icon: PackageCheck },
+  { href: "/admin/usuarios", label: "Usuarios y permisos", helper: "Accesos por tienda y rol", icon: Users },
+  { href: "/admin/reportes", label: "Exportar reportes", helper: "Ventas, inventario y créditos", icon: ShoppingCart }
+];
 
 export function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -33,6 +41,22 @@ export function AdminDashboard() {
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-black/45">Panel administrativo</p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">Resumen administrativo</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Ventas, inventario, producción, créditos y alertas críticas de la quesería.</p>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {adminActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link key={action.href} href={action.href} className="group rounded-lg border border-black/10 bg-white p-4 transition hover:-translate-y-0.5 hover:bg-cream-100">
+              <div className="flex items-start justify-between gap-3">
+                <Icon className="h-7 w-7" />
+                <ArrowRight className="h-4 w-4 text-black/35 transition group-hover:translate-x-1" />
+              </div>
+              <p className="mt-4 text-lg font-semibold">{action.label}</p>
+              <p className="mt-1 text-sm leading-5 text-black/55">{action.helper}</p>
+            </Link>
+          );
+        })}
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

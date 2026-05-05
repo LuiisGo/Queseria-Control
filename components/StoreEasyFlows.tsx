@@ -366,6 +366,7 @@ function ProductGrid({ products, inventory, branchId, selectedId, onSelect, show
           <div className="flex items-center gap-3">
             <ProductImage product={product} />
             <div>
+              <p className={cn("text-xs font-semibold uppercase tracking-[0.12em]", selectedId === product.id ? "text-white/60" : "text-black/40")}>SKU {product.code || product.id}</p>
               <p className="text-lg font-semibold">{product.name}</p>
               {showStock && <p className={cn("text-sm", selectedId === product.id ? "text-white/70" : "text-black/55")}>Stock: {stock}</p>}
             </div>
