@@ -63,7 +63,7 @@ export function StoreSaleFlow() {
   }
 
   return (
-    <EasyShell title="Vender" subtitle="El sistema usa FIFO y descuenta primero los lotes más próximos a vencer.">
+    <EasyShell title="Vender" subtitle="Venta rápida.">
       <Step title="1. ¿Qué producto vendiste?">
         <ProductGrid products={state.products} inventory={state.inventory} branchId={branchId} selectedId={productId} onSelect={(id) => { setProductId(id); setQuantity(1); }} />
       </Step>
@@ -129,7 +129,7 @@ export function StoreProductionFlow() {
   }
 
   return (
-    <EasyShell title="Registrar producción" subtitle="Esto suma inventario a Central. El sistema asigna la fecha de hoy y vence automáticamente en 16 días.">
+    <EasyShell title="Registrar producción" subtitle="Entrada a Central.">
       {!isCentral && state.summary ? (
         <section className="panel p-4">
           <h2 className="text-lg font-semibold">Producción solo en Central</h2>
@@ -207,7 +207,7 @@ export function StoreTransferFlow() {
   }
 
   return (
-    <EasyShell title="Enviar a tienda" subtitle="Central descuenta inventario y la tienda recibe automáticamente.">
+    <EasyShell title="Enviar a tienda" subtitle="Central a tienda.">
       {!isCentral && state.summary ? (
         <section className="panel p-4">
           <h2 className="text-lg font-semibold">Envíos solo desde Central</h2>
@@ -247,7 +247,7 @@ export function StoreInventoryEasy() {
   const [state] = useStoreData();
   if (state.user && !hasPermission(state.user, "can_view_inventory")) return <BlockedFlow title="Inventario" permission="can_view_inventory" />;
   return (
-    <EasyShell title="Inventario" subtitle="Stock por producto, lote y vencimiento.">
+    <EasyShell title="Inventario" subtitle="Stock y lotes.">
       <div className="grid gap-3 md:grid-cols-2">
         {state.inventory.map((item) => (
           <div key={item.id} className="rounded-lg border border-black/10 bg-white p-4">
@@ -302,7 +302,7 @@ export function StoreWasteFlow() {
   }
 
   return (
-    <EasyShell title="Registrar pérdida" subtitle="Producto vencido, dañado o perdido.">
+    <EasyShell title="Registrar pérdida" subtitle="Descuento de stock.">
       <Step title="1. ¿Qué producto se perdió o dañó?">
         <ProductGrid products={state.products} inventory={state.inventory} branchId={branchId} selectedId={productId} onSelect={(id) => { setProductId(id); setQuantity(1); }} />
       </Step>
@@ -325,7 +325,7 @@ export function StoreWasteFlow() {
 
 function BlockedFlow({ title, permission }: { title: string; permission: PermissionKey }) {
   return (
-    <EasyShell title={title} subtitle="Tu usuario no tiene permiso para usar esta opción. Pedí al Admin que lo active en Usuarios y permisos.">
+    <EasyShell title={title} subtitle="Permiso no activo.">
       <section className="panel p-4">
         <h2 className="text-lg font-semibold">Permiso requerido</h2>
         <p className="mt-2 text-sm text-black/60">{permissionLabels[permission]}</p>

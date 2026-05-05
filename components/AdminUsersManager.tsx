@@ -147,9 +147,7 @@ export function AdminUsersManager() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-black/45">Admin</p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">Usuarios y permisos</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">
-            Creá usuarios, asigná ubicaciones y decidí exactamente qué puede hacer cada usuario de tienda.
-          </p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Accesos, ubicaciones y permisos.</p>
         </div>
         <button className="btn-secondary" type="button" onClick={startNew}>
           <UserPlus className="h-4 w-4" />
@@ -239,12 +237,12 @@ export function AdminUsersManager() {
               {form.active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
               {form.active ? "Usuario activo" : "Usuario inactivo"}
             </button>
-            <p className="text-sm text-black/55">Si está inactivo, no podrá iniciar sesión.</p>
+            <p className="text-sm text-black/55">Inactivo no ingresa.</p>
           </div>
 
           <section className="mt-5">
             <h3 className="font-semibold">Ubicaciones asignadas</h3>
-            <p className="mt-1 text-sm text-black/55">El usuario solo verá y operará estas ubicaciones.</p>
+            <p className="mt-1 text-sm text-black/55">Ubicaciones permitidas.</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {branches.map((branch) => (
                 <label key={branch.id} className={cn("flex cursor-pointer items-center justify-between rounded-lg border p-3", form.assignedBranches.includes(branch.id) ? "border-ink bg-ink text-white" : "border-black/10 bg-white")}>
@@ -262,7 +260,7 @@ export function AdminUsersManager() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h3 className="font-semibold">Permisos de tienda</h3>
-                <p className="mt-1 text-sm text-black/55">Podés activar o quitar cada opción. Admin siempre ve todo.</p>
+                <p className="mt-1 text-sm text-black/55">Opciones por usuario.</p>
               </div>
               {form.role === "Tienda" && (
                 <div className="flex flex-wrap gap-2">
@@ -281,7 +279,7 @@ export function AdminUsersManager() {
                   <ShieldCheck className="h-5 w-5" />
                   <p className="font-semibold">Admin tiene acceso completo</p>
                 </div>
-                <p className="mt-2 text-sm text-white/70">Puede ver dashboard, editar catálogos, usuarios, precios, inventario, reportes y configuración.</p>
+                <p className="mt-2 text-sm text-white/70">Acceso total.</p>
               </div>
             ) : (
               <div className="mt-3 space-y-4">

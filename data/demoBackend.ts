@@ -355,6 +355,34 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
             lots: demoLots.filter((lot) => lot.productId === item.productId && lot.branchId === item.branchId && lot.quantity > 0)
           }))
         );
+      case "ADJUST_INVENTORY": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede ajustar inventario.");
+        const product = getProduct(String(payload.productId));
+        const branch = getBranch(String(payload.branchId));
+        if (!product) return error("Producto no encontrado.");
+        if (!branch) return error("Ubicación no encontrada.");
+        const item = getInventory(product.id, branch.id);
+        const oldQuantity = item.quantity;
+        const newQuantity = Number(payload.newQuantity);
+        const minStock = Number(payload.minStock ?? item.minStock);
+        if (!Number.isFinite(newQuantity) || newQuantity < 0) return error("Cantidad inválida.");
+        if (!Number.isFinite(minStock) || minStock < 0) return error("Stock mínimo inválido.");
+        const delta = newQuantity - oldQuantity;
+        const lotNumber = String(payload.lotNumber || (delta > 0 ? `AJ${dateCode(todayIso())}${String(demoLots.length + 1).padStart(2, "0")}` : ""));
+        const expiresAt = String(payload.expirationDate || (delta > 0 ? addDaysDate(todayIso(), 16) : ""));
+        if (delta !== 0) {
+          applyStock(product.id, branch.id, delta, {
+            lotNumber,
+            expiresAt,
+            notes: String(payload.reason || "Ajuste manual")
+          });
+        }
+        item.quantity = newQuantity;
+        item.minStock = minStock;
+        item.lots = demoLots.filter((lot) => lot.productId === product.id && lot.branchId === branch.id && lot.quantity > 0);
+        item.updatedAt = todayIso();
+        return success(item, "Inventario ajustado.");
+      }
       case "REGISTER_PRODUCTION": {
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");

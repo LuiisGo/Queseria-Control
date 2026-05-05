@@ -1,7 +1,7 @@
 import type { PermissionMap } from "@/types";
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Quesería San Antonio";
-export const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
+export const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 export const SESSION_COOKIE = "lsa_session";
 
 export const allStorePermissions: PermissionMap = {

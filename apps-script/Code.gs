@@ -22,6 +22,7 @@ function doPost(e) {
       case "SET_PRICE": data = setPrice(payload); break;
       case "GET_PRICE_HISTORY": data = getPriceHistory(payload); break;
       case "LIST_INVENTORY": data = listInventory(payload); break;
+      case "ADJUST_INVENTORY": data = adjustInventory(payload); break;
       case "REGISTER_PRODUCTION": data = registerProduction(payload); break;
       case "LIST_PRODUCTION": data = listProduction(payload); break;
       case "REGISTER_TRANSFER": data = registerTransfer(payload); break;

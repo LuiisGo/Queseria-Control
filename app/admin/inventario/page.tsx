@@ -1,8 +1,7 @@
 "use client";
 
-import { ModulePage } from "@/components/ModulePage";
-import { adminModules } from "@/lib/moduleConfigs";
+import { AdminInventoryManager } from "@/components/AdminInventoryManager";
 
 export default function InventarioPage() {
-  return <ModulePage {...adminModules.inventario} />;
+  return <AdminInventoryManager />;
 }

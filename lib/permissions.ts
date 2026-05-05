@@ -17,17 +17,17 @@ export const permissionLabels: Record<PermissionKey, string> = {
 };
 
 export const permissionDescriptions: Record<PermissionKey, string> = {
-  can_register_sales: "Permite vender desde la ubicación asignada.",
-  can_register_entries: "Permite registrar producción o entradas autorizadas.",
-  can_register_exits: "Permite registrar salidas internas.",
-  can_register_transfers: "Permite enviar producto desde Central hacia tiendas.",
-  can_register_waste: "Permite descontar producto vencido, dañado o perdido.",
+  can_register_sales: "Ventas de su ubicación.",
+  can_register_entries: "Producción autorizada.",
+  can_register_exits: "Salidas internas.",
+  can_register_transfers: "Envíos desde Central.",
+  can_register_waste: "Producto perdido o vencido.",
   can_register_returns: "Permite registrar devoluciones.",
-  can_apply_discounts: "Permite aplicar descuentos en ventas.",
-  can_view_daily_summary: "Permite ver resumen diario y hacer cierre.",
-  can_view_inventory: "Permite consultar stock, lotes y vencimientos.",
-  can_export_own_day: "Permite exportar reportes propios del día.",
-  can_request_corrections: "Permite pedir cambios cuando se equivocan."
+  can_apply_discounts: "Descuentos en ventas.",
+  can_view_daily_summary: "Resumen y cierre diario.",
+  can_view_inventory: "Stock, lotes y vencimientos.",
+  can_export_own_day: "CSV del día.",
+  can_request_corrections: "Solicitar cambios."
 };
 
 export const permissionGroups: Array<{ title: string; keys: PermissionKey[] }> = [

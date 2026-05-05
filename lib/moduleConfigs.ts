@@ -27,7 +27,7 @@ const imageThumb = (row: Record<string, unknown>) =>
 export const adminModules: Record<string, ModuleConfig> = {
   productos: {
     title: "Productos",
-    description: "Catálogo de lácteos, presentaciones, precios base y mínimos de stock.",
+    description: "Catálogo de productos.",
     endpoint: "/api/products",
     columns: [
       { key: "imageData", label: "Imagen", render: imageThumb },
@@ -60,7 +60,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   ubicaciones: {
     title: "Ubicaciones",
-    description: "Producción, tienda central y puntos de venta con inventario separado.",
+    description: "Central y tiendas.",
     endpoint: "/api/branches",
     columns: [
       { key: "id", label: "ID" },
@@ -78,7 +78,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   usuarios: {
     title: "Usuarios",
-    description: "Credenciales, roles, sucursales asignadas y permisos de tienda.",
+    description: "Accesos y permisos.",
     endpoint: "/api/users",
     columns: [
       { key: "id", label: "ID" },
@@ -97,7 +97,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   precios: {
     title: "Precios",
-    description: "Precio final, distribuidor e historial base. Los precios especiales quedan modelados para Apps Script.",
+    description: "Precios vigentes.",
     endpoint: "/api/prices",
     columns: [
       { key: "productName", label: "Producto" },
@@ -117,7 +117,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   inventario: {
     title: "Inventario",
-    description: "Existencias por producto, ubicación, lotes disponibles y señales de stock bajo.",
+    description: "Existencias por producto.",
     endpoint: "/api/inventory",
     columns: [
       { key: "productName", label: "Producto" },
@@ -130,7 +130,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   produccion: {
     title: "Producción",
-    description: "Central y Admin registran producto terminado con código de lote. El vencimiento se calcula automáticamente 16 días después de la producción.",
+    description: "Producto terminado.",
     endpoint: "/api/production",
     columns: [
       { key: "id", label: "ID" },
@@ -152,7 +152,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   envios: {
     title: "Envíos",
-    description: "Envíos desde Central/Admin hacia tiendas. Los envíos a distribuidores se registran como venta a distribuidor.",
+    description: "Salidas desde Central.",
     endpoint: "/api/transfers",
     columns: [
       { key: "id", label: "ID" },
@@ -177,7 +177,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   ventas: {
     title: "Ventas",
-    description: "Cada sucursal registra sus ventas. Los envíos a distribuidores se registran aquí como venta a distribuidor.",
+    description: "Ventas registradas.",
     endpoint: "/api/sales",
     columns: [
       { key: "id", label: "ID" },
@@ -207,7 +207,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   distribuidores: {
     title: "Clientes distribuidores",
-    description: "Mayoristas con datos de contacto, notas y estructura para precios especiales.",
+    description: "Clientes mayoristas.",
     endpoint: "/api/distributors",
     columns: [
       { key: "id", label: "ID" },
@@ -226,7 +226,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   creditos: {
     title: "Créditos",
-    description: "Cuentas por cobrar de distribuidores, saldos pendientes y registro de abonos.",
+    description: "Cuentas por cobrar.",
     endpoint: "/api/credits",
     columns: [
       { key: "id", label: "ID" },
@@ -246,7 +246,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   mermas: {
     title: "Pérdidas",
-    description: "Producto vencido, dañado, perdido o devolución no utilizable, con descuento de inventario.",
+    description: "Pérdidas registradas.",
     endpoint: "/api/waste",
     columns: [
       { key: "id", label: "ID" },
@@ -267,7 +267,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   reportes: {
     title: "Reportes",
-    description: "Salida CSV para ventas, inventario, producción, envíos, pérdidas, créditos y reporte general.",
+    description: "Reportes y CSV.",
     endpoint: "/api/sales",
     columns: [
       { key: "id", label: "Venta" },
@@ -280,7 +280,7 @@ export const adminModules: Record<string, ModuleConfig> = {
   },
   configuracion: {
     title: "Configuración",
-    description: "Parámetros generales, emails de administradores y toggles de notificaciones.",
+    description: "Ajustes generales.",
     endpoint: "/api/settings",
     columns: [
       { key: "name", label: "Ubicación" },

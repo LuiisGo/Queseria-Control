@@ -115,17 +115,20 @@ export function AppShell({ children, user, mode }: { children: React.ReactNode; 
         </div>
       </header>
 
-      <main className="px-4 pb-28 pt-5 lg:ml-72 lg:px-8 lg:pb-10">{children}</main>
+      <main className="px-4 pb-32 pt-5 lg:ml-72 lg:px-8 lg:pb-10">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-1 border-t border-black/10 bg-milk/95 px-2 py-2 backdrop-blur lg:hidden">
-        {nav.slice(0, 5).map((item) => {
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex gap-1 overflow-x-auto border-t border-black/10 bg-milk/95 px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+        {nav.map((item) => {
           const Icon = item.icon;
           const active = pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={cn("flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[11px] font-semibold text-black/55", active && "bg-ink text-white")}
+              className={cn(
+                "flex min-w-[78px] shrink-0 flex-col items-center gap-1 rounded-lg px-2 py-2 text-[11px] font-semibold text-black/55",
+                active && "bg-ink text-white"
+              )}
             >
               <Icon className="h-5 w-5" />
               <span className="max-w-full truncate">{item.label}</span>

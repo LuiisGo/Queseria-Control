@@ -19,6 +19,69 @@ function listInventory(payload) {
   return success(rows);
 }
 
+function adjustInventory(payload) {
+  var admin = requireAdmin(payload);
+  requireFields(payload, ["productId", "branchId", "newQuantity"]);
+  var product = getById("Products", payload.productId);
+  var branch = getById("Branches", payload.branchId);
+  if (!product) throw new Error("Producto no encontrado.");
+  if (!branch) throw new Error("Ubicación no encontrada.");
+
+  var current = getInventoryRow(payload.productId, payload.branchId);
+  var oldQuantity = Number(current.Quantity || 0);
+  var newQuantity = Number(payload.newQuantity);
+  var minStock = payload.minStock !== undefined && payload.minStock !== "" ? Number(payload.minStock) : Number(current.Min_Stock || 0);
+  if (isNaN(newQuantity) || newQuantity < 0) throw new Error("Cantidad inválida.");
+  if (isNaN(minStock) || minStock < 0) throw new Error("Stock mínimo inválido.");
+
+  var delta = newQuantity - oldQuantity;
+  var reason = payload.reason || "Ajuste manual";
+  var generatedLot = "AJ" + dateCode(nowIso()) + String(getRows("Inventory_Lots").length + 1).padStart(2, "0");
+  var lotNumber = payload.lotNumber || (delta > 0 ? generatedLot : "");
+  var expirationDate = payload.expirationDate || (delta > 0 ? addDaysDate(nowIso(), 16) : "");
+  var lotsUsed = [];
+
+  if (delta !== 0) {
+    lotsUsed = changeStock(payload.productId, payload.branchId, delta, lotNumber, expirationDate, reason);
+  }
+
+  var updated = updateRow("Inventory", current.ID, {
+    Quantity: newQuantity,
+    Min_Stock: minStock,
+    Updated_At: nowIso()
+  });
+  var adjustment = appendRow("Stock_Adjustments", {
+    ID: nextId("Stock_Adjustments", "ADJ"),
+    Date: nowIso(),
+    User_ID: admin.ID,
+    Branch_ID: payload.branchId,
+    Product_ID: payload.productId,
+    Old_Quantity: oldQuantity,
+    New_Quantity: newQuantity,
+    Reason: reason,
+    Notes: payload.notes || ""
+  });
+
+  logAudit(admin, "ADJUST_INVENTORY", "Inventory", updated.ID, current, {
+    inventory: updated,
+    adjustment: adjustment,
+    lotNumber: lotNumber,
+    expirationDate: expirationDate,
+    lotsUsed: lotsUsed
+  }, reason);
+  return success({
+    id: updated.ID,
+    productId: updated.Product_ID,
+    productName: productName(updated.Product_ID),
+    branchId: updated.Branch_ID,
+    branchName: branchName(updated.Branch_ID),
+    quantity: Number(updated.Quantity || 0),
+    minStock: Number(updated.Min_Stock || 0),
+    lots: availableLots(updated.Product_ID, updated.Branch_ID).map(mapLot),
+    updatedAt: updated.Updated_At
+  }, "Inventario ajustado.");
+}
+
 function getInventoryRow(productId, branchId) {
   var row = getRows("Inventory").find(function(candidate) { return candidate.Product_ID === productId && candidate.Branch_ID === branchId; });
   if (row) return row;

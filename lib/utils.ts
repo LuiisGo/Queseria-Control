@@ -21,6 +21,17 @@ export function toInputDate(value?: string) {
   return value ? value.slice(0, 10) : new Date().toISOString().slice(0, 10);
 }
 
+export function formatDate(value?: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("es-GT", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
+}
+
 export function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
   const headers = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
   const csv = [

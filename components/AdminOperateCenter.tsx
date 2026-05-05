@@ -33,10 +33,10 @@ type AdminData = {
 };
 
 const flowOptions: Array<{ id: Flow; label: string; icon: typeof Wheat; description: string }> = [
-  { id: "production", label: "Registrar producción", icon: Wheat, description: "Producto terminado entra a Central con lote." },
-  { id: "transfer", label: "Enviar a tienda", icon: Truck, description: "Central descuenta y la tienda recibe automático." },
-  { id: "distributor-sale", label: "Venta a distribuidor", icon: ShoppingCart, description: "Contado o crédito, con cuenta por cobrar." },
-  { id: "loss", label: "Registrar pérdida", icon: AlertTriangle, description: "Vencido, dañado o perdido por ubicación." }
+  { id: "production", label: "Registrar producción", icon: Wheat, description: "Entrada a Central." },
+  { id: "transfer", label: "Enviar a tienda", icon: Truck, description: "Central a tienda." },
+  { id: "distributor-sale", label: "Venta a distribuidor", icon: ShoppingCart, description: "Contado o crédito." },
+  { id: "loss", label: "Registrar pérdida", icon: AlertTriangle, description: "Descuento de stock." }
 ];
 
 const quickLinks = [
@@ -82,9 +82,7 @@ export function AdminOperateCenter() {
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-black/45">Admin</p>
           <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">Operar</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">
-            Acciones principales en pasos cortos, con SKU visible y sin escribir códigos manualmente.
-          </p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Acciones principales.</p>
         </div>
         <button className="btn-secondary" type="button" onClick={() => void load()}>
           Actualizar
@@ -161,7 +159,7 @@ function AdminProductionFlow({ data, onDone }: { data: AdminData; onDone: () => 
   }
 
   return (
-    <EasyPanel title="Registrar producción" subtitle="El producto entra a Central con fecha del sistema y vencimiento automático a 16 días.">
+    <EasyPanel title="Registrar producción" subtitle="Central recibe producto.">
       <Step title="1. Producto producido">
         <ProductPicker products={data.products} inventory={data.inventory} branchId={central?.id || ""} selectedId={productId} onSelect={setProductId} showStock={false} />
       </Step>
@@ -219,7 +217,7 @@ function AdminTransferFlow({ data, onDone }: { data: AdminData; onDone: () => Pr
   }
 
   return (
-    <EasyPanel title="Enviar a tienda" subtitle="El inventario sale de Central y entra a la tienda seleccionada.">
+    <EasyPanel title="Enviar a tienda" subtitle="Central descuenta y la tienda recibe.">
       <Step title="1. Tienda destino">
         <OptionGrid options={subbranches.map((branch) => ({ id: branch.id, label: branch.name, helper: branch.id }))} value={destinationBranchId} onChange={setDestinationBranchId} />
       </Step>
@@ -272,7 +270,7 @@ function AdminDistributorSaleFlow({ data, onDone }: { data: AdminData; onDone: (
   }
 
   return (
-    <EasyPanel title="Venta a distribuidor" subtitle="Usá este flujo para Mazate, CAES u otros mayoristas.">
+    <EasyPanel title="Venta a distribuidor" subtitle="Venta contado o crédito.">
       <Step title="1. Distribuidor">
         <OptionGrid options={data.distributors.map((item) => ({ id: item.id, label: item.name, helper: item.id }))} value={distributorId} onChange={setDistributorId} />
       </Step>
@@ -319,7 +317,7 @@ function AdminLossFlow({ data, onDone }: { data: AdminData; onDone: () => Promis
   }
 
   return (
-    <EasyPanel title="Registrar pérdida" subtitle="Descuenta producto vencido, dañado o perdido en cualquier ubicación.">
+    <EasyPanel title="Registrar pérdida" subtitle="Descuenta inventario.">
       <Step title="1. Ubicación">
         <OptionGrid options={data.branches.map((item) => ({ id: item.id, label: item.name, helper: item.id }))} value={branchId} onChange={setBranchId} />
       </Step>

@@ -13,10 +13,10 @@ import type { DashboardData } from "@/types";
 const colors = ["#171615", "#dec48f", "#8f7652", "#c5a269", "#f1dfbd"];
 
 const adminActions = [
-  { href: "/admin/operar", label: "Operar ahora", helper: "Producción, envío, venta y pérdida", icon: Wheat },
-  { href: "/admin/productos", label: "Productos y precios", helper: "SKU, imagen, stock mínimo y precios", icon: PackageCheck },
-  { href: "/admin/usuarios", label: "Usuarios y permisos", helper: "Accesos por tienda y rol", icon: Users },
-  { href: "/admin/reportes", label: "Exportar reportes", helper: "Ventas, inventario y créditos", icon: ShoppingCart }
+  { href: "/admin/operar", label: "Operar ahora", helper: "Flujos principales", icon: Wheat },
+  { href: "/admin/productos", label: "Productos y precios", helper: "Catálogo y valores", icon: PackageCheck },
+  { href: "/admin/usuarios", label: "Usuarios y permisos", helper: "Accesos por persona", icon: Users },
+  { href: "/admin/reportes", label: "Exportar reportes", helper: "CSV y análisis", icon: ShoppingCart }
 ];
 
 export function AdminDashboard() {
@@ -40,7 +40,7 @@ export function AdminDashboard() {
       <section>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-black/45">Panel administrativo</p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-normal">Resumen administrativo</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Ventas, inventario, producción, créditos y alertas críticas de la quesería.</p>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-black/60">Ventas, inventario y alertas.</p>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
