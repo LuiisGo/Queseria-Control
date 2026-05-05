@@ -24,8 +24,7 @@ export default function LoginPage() {
     const json = await response.json();
     if (json.success) {
       toast.success("Bienvenido");
-      router.push(json.data.role === "Admin" ? "/admin/dashboard" : "/tienda/inicio");
-      router.refresh();
+      router.replace(json.data.role === "Admin" ? "/admin/dashboard" : "/tienda/inicio");
     } else {
       toast.error(json.error || "No se pudo iniciar sesión.");
     }

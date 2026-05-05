@@ -11,6 +11,12 @@ function setPrice(payload) {
   } else {
     appendRow("Product_Prices", { ID: nextId("Product_Prices", "PRI"), Product_ID: payload.productId, Price_Type: payload.priceType, Scope_Type: scopeType, Scope_ID: payload.scopeId || "", Price: Number(payload.price), Active: true, Updated_At: nowIso() });
   }
+  if (scopeType === "Global" && payload.priceType === "Precio venta final") {
+    updateRow("Products", payload.productId, { Final_Price: Number(payload.price), Updated_At: nowIso() });
+  }
+  if (scopeType === "Global" && payload.priceType === "Precio distribuidor") {
+    updateRow("Products", payload.productId, { Distributor_Price: Number(payload.price), Updated_At: nowIso() });
+  }
   appendRow("Price_History", { ID: nextId("Price_History", "PH"), Product_ID: payload.productId, Price_Type: payload.priceType, Scope_Type: scopeType, Scope_ID: payload.scopeId || "", Old_Price: oldPrice, New_Price: Number(payload.price), User_ID: admin.ID, Changed_At: nowIso(), Notes: payload.notes || "" });
   logAudit(admin, "SET_PRICE", "Prices", payload.productId, { price: oldPrice }, payload, "");
   return success({}, "Precio actualizado.");

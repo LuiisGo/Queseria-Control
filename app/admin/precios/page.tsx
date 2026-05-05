@@ -1,8 +1,7 @@
 "use client";
 
-import { ModulePage } from "@/components/ModulePage";
-import { adminModules } from "@/lib/moduleConfigs";
+import { AdminPriceManager } from "@/components/AdminPriceManager";
 
 export default function PreciosPage() {
-  return <ModulePage {...adminModules.precios} />;
+  return <AdminPriceManager />;
 }

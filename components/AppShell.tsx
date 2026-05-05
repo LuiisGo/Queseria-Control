@@ -72,8 +72,7 @@ export function AppShell({ children, user, mode }: { children: React.ReactNode; 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     toast.success("Sesión cerrada");
-    router.push("/login");
-    router.refresh();
+    router.replace("/login");
   }
 
   return (

@@ -6,5 +6,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return handleWrite("REGISTER_SALE", request);
+  const body = (await request.clone().json().catch(() => ({}))) as Record<string, unknown>;
+  return handleWrite(body.id ? "UPDATE_SALE" : "REGISTER_SALE", request);
 }

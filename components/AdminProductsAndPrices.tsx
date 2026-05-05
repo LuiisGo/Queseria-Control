@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Package, WalletCards } from "lucide-react";
+import { AdminPriceManager } from "@/components/AdminPriceManager";
 import { ModulePage } from "@/components/ModulePage";
 import { adminModules } from "@/lib/moduleConfigs";
 
@@ -37,7 +38,7 @@ export function AdminProductsAndPrices() {
       </div>
 
       <div id="precios">
-        <ModulePage {...adminModules.precios} title="Precios" description="Cambios de precio por producto, sucursal o distribuidor." />
+        <AdminPriceManager />
       </div>
     </div>
   );

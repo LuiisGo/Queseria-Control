@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ImagePlus, Plus, RefreshCw } from "lucide-react";
+import { Edit3, ImagePlus, Plus, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/components/DataTable";
 import { cn } from "@/lib/utils";
@@ -27,26 +27,37 @@ type ModulePageProps = {
   endpoint: string;
   columns: Column<Record<string, unknown>>[];
   fields?: FieldConfig[];
+  editFields?: FieldConfig[];
   formTitle?: string;
+  editable?: boolean;
   transformSubmit?: (values: Record<string, string>) => Record<string, unknown>;
+  transformEditSubmit?: (values: Record<string, string>) => Record<string, unknown>;
 };
 
-export function ModulePage({ title, description, endpoint, columns, fields = [], formTitle = "Nuevo registro", transformSubmit }: ModulePageProps) {
+export function ModulePage({ title, description, endpoint, columns, fields = [], editFields = [], formTitle = "Nuevo registro", editable = true, transformSubmit, transformEditSubmit }: ModulePageProps) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [optionRows, setOptionRows] = useState<Record<string, Record<string, unknown>[]>>({});
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const initial = useMemo(() => Object.fromEntries(fields.map((field) => [field.name, field.defaultValue || ""])), [fields]);
+  const allFields = useMemo(() => [...fields, ...editFields], [editFields, fields]);
   const [values, setValues] = useState<Record<string, string>>(initial);
+  const [editingRow, setEditingRow] = useState<Record<string, unknown> | null>(null);
+  const currentFields = editingRow && editFields.length ? editFields : fields;
+  const canEditRows = editable && (editFields.length > 0 || fields.length > 0);
+  const needsCurrentUser = useMemo(() => allFields.some((field) => field.optionSource === "branches" && field.optionFilter === "assigned"), [allFields]);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const response = await fetch(endpoint, { cache: "no-store" });
-    const json = await response.json();
-    if (json.success) setRows(Array.isArray(json.data) ? json.data : json.data?.rows || []);
-    else toast.error(json.error || "No se pudo cargar.");
-    setLoading(false);
+    try {
+      const response = await fetch(endpoint, { cache: "no-store" });
+      const json = await response.json();
+      if (json.success) setRows(Array.isArray(json.data) ? json.data : json.data?.rows || []);
+      else toast.error(json.error || "No se pudo cargar.");
+    } finally {
+      setLoading(false);
+    }
   }, [endpoint]);
 
   useEffect(() => {
@@ -54,12 +65,13 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
   }, [load]);
 
   useEffect(() => {
+    if (!needsCurrentUser) return;
     fetch("/api/auth/me", { cache: "no-store" })
       .then((response) => response.json())
       .then((json) => {
         if (json.success) setCurrentUser(json.data);
       });
-  }, []);
+  }, [needsCurrentUser]);
 
   useEffect(() => {
     const endpoints: Record<NonNullable<FieldConfig["optionSource"]>, string> = {
@@ -68,7 +80,7 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
       distributors: "/api/distributors",
       credits: "/api/credits"
     };
-    const sources = Array.from(new Set(fields.map((field) => field.optionSource).filter(Boolean))) as NonNullable<FieldConfig["optionSource"]>[];
+    const sources = Array.from(new Set(allFields.map((field) => field.optionSource).filter(Boolean))) as NonNullable<FieldConfig["optionSource"]>[];
     sources.forEach((source) => {
       fetch(endpoints[source], { cache: "no-store" })
         .then((response) => response.json())
@@ -76,12 +88,32 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
           if (json.success) setOptionRows((current) => ({ ...current, [source]: Array.isArray(json.data) ? json.data : [] }));
         });
     });
-  }, [fields]);
+  }, [allFields]);
+
+  function resetForm() {
+    setValues(initial);
+    setEditingRow(null);
+  }
+
+  function startEdit(row: Record<string, unknown>) {
+    const next = { ...initial };
+    const rowFields = editFields.length ? editFields : fields;
+    rowFields.forEach((field) => {
+      next[field.name] = valueFromRow(row, field);
+    });
+    setValues(next);
+    setEditingRow(row);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    const payload = transformSubmit ? transformSubmit(values) : values;
+    const transform = editingRow && transformEditSubmit ? transformEditSubmit : transformSubmit;
+    const payload = {
+      ...(transform ? transform(values) : values),
+      ...(editingRow?.id ? { id: editingRow.id } : {})
+    };
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -89,14 +121,30 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
     });
     const json = await response.json();
     if (json.success) {
-      toast.success(json.message || "Guardado.");
-      setValues(initial);
+      toast.success(json.message || (editingRow ? "Actualizado." : "Guardado."));
+      resetForm();
       await load();
     } else {
       toast.error(json.error || "No se pudo guardar.");
     }
     setSaving(false);
   }
+
+  const tableColumns = canEditRows
+    ? ([
+        ...columns,
+        {
+          key: "__edit",
+          label: "Editar",
+          render: (row: Record<string, unknown>) => (
+            <button className="btn-secondary h-9 px-3" type="button" onClick={() => startEdit(row)}>
+              <Edit3 className="h-4 w-4" />
+              Editar
+            </button>
+          )
+        }
+      ] satisfies Column<Record<string, unknown>>[])
+    : columns;
 
   return (
     <div className="space-y-5">
@@ -114,12 +162,20 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
 
       {!!fields.length && (
         <form className="panel p-4" onSubmit={submit}>
-          <div className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            <h2 className="font-semibold">{formTitle}</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              {editingRow ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+              <h2 className="font-semibold">{editingRow ? `Editar ${title}` : formTitle}</h2>
+            </div>
+            {editingRow ? (
+              <button className="btn-secondary h-9 px-3 text-xs" type="button" onClick={resetForm}>
+                <X className="h-4 w-4" />
+                Cancelar
+              </button>
+            ) : null}
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {fields.map((field) => (
+            {currentFields.map((field) => (
               <label key={field.name} className={cn(field.type === "textarea" && "md:col-span-2")}>
                 <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-black/50">{field.label}</span>
                 {field.type === "select" ? (
@@ -152,14 +208,22 @@ export function ModulePage({ title, description, endpoint, columns, fields = [],
             ))}
           </div>
           <button className="btn-primary mt-4 w-full sm:w-auto" disabled={saving}>
-            {saving ? "Guardando..." : "Guardar"}
+            {saving ? "Guardando..." : editingRow ? "Guardar cambios" : "Guardar"}
           </button>
         </form>
       )}
 
-      <DataTable title={title} rows={rows} columns={columns} />
+      <DataTable title={title} rows={rows} columns={tableColumns} />
     </div>
   );
+}
+
+function valueFromRow(row: Record<string, unknown>, field: FieldConfig) {
+  if (field.name === "active") return row.active === false ? "Inactivo" : "Activo";
+  const value = row[field.name];
+  if (value === undefined || value === null) return field.defaultValue || "";
+  if (field.type === "date") return String(value).slice(0, 10);
+  return String(value);
 }
 
 function FileInput({ field, value, onChange }: { field: FieldConfig; value: string; onChange: (value: string) => void }) {

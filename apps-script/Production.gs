@@ -30,6 +30,24 @@ function listProduction(payload) {
   var user = requireActiveUser(payload);
   var branches = user.Role === "Admin" ? null : userAssignedBranches(user.ID);
   return success(getRows("Production").filter(function(row) { return !branches || branches.indexOf(row.Branch_ID) > -1; }).map(function(row) {
-    return { id: row.ID, date: row.Date, userId: row.User_ID, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), productId: row.Product_ID, productName: productName(row.Product_ID), quantity: Number(row.Quantity || 0), lotNumber: row.Lot_Number, expiresAt: row.Expiration_Date, notes: row.Notes };
+    return mapProduction(row);
   }));
+}
+
+function updateProduction(payload) {
+  var admin = requireAdmin(payload);
+  requireFields(payload, ["id"]);
+  var old = getById("Production", payload.id);
+  if (!old) throw new Error("Producción no encontrada.");
+  var row = updateRow("Production", payload.id, {
+    Lot_Number: payload.lotNumber !== undefined ? payload.lotNumber : old.Lot_Number,
+    Expiration_Date: payload.expiresAt !== undefined ? payload.expiresAt : old.Expiration_Date,
+    Notes: payload.notes !== undefined ? payload.notes : old.Notes
+  });
+  logAudit(admin, "UPDATE_PRODUCTION", "Production", payload.id, old, row, "");
+  return success(mapProduction(row), "Producción actualizada.");
+}
+
+function mapProduction(row) {
+  return { id: row.ID, date: row.Date, userId: row.User_ID, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), productId: row.Product_ID, productName: productName(row.Product_ID), quantity: Number(row.Quantity || 0), lotNumber: row.Lot_Number, expiresAt: row.Expiration_Date, notes: row.Notes };
 }

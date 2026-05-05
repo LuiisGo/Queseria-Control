@@ -48,6 +48,40 @@ function listSales(payload) {
   var user = requireActiveUser(payload);
   var branches = user.Role === "Admin" ? null : userAssignedBranches(user.ID);
   return success(getRows("Sales").filter(function(row) { return !branches || branches.indexOf(row.Branch_ID) > -1; }).map(function(row) {
-    return { id: row.ID, date: row.Date, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), customerType: row.Customer_Type, distributorId: row.Distributor_ID, distributorName: row.Distributor_ID ? distributorName(row.Distributor_ID) : "", paymentMethod: row.Payment_Method, total: Number(row.Total || 0), estimatedProfit: Number(row.Estimated_Profit || 0), status: row.Status };
+    return mapSale(row);
   }));
+}
+
+function updateSale(payload) {
+  var admin = requireAdmin(payload);
+  requireFields(payload, ["id"]);
+  var old = getById("Sales", payload.id);
+  if (!old) throw new Error("Venta no encontrada.");
+  var row = updateRow("Sales", payload.id, {
+    Payment_Method: payload.paymentMethod || old.Payment_Method,
+    Status: payload.status || old.Status,
+    Notes: payload.notes !== undefined ? payload.notes : old.Notes
+  });
+  logAudit(admin, "UPDATE_SALE", "Sales", payload.id, old, row, payload.note || "");
+  return success(mapSale(row), "Venta actualizada.");
+}
+
+function mapSale(row) {
+  return {
+    id: row.ID,
+    date: row.Date,
+    branchId: row.Branch_ID,
+    branchName: branchName(row.Branch_ID),
+    customerType: row.Customer_Type,
+    distributorId: row.Distributor_ID,
+    distributorName: row.Distributor_ID ? distributorName(row.Distributor_ID) : "",
+    paymentMethod: row.Payment_Method,
+    subtotal: Number(row.Subtotal || 0),
+    discountTotal: Number(row.Discount_Total || 0),
+    total: Number(row.Total || 0),
+    estimatedCost: Number(row.Estimated_Cost || 0),
+    estimatedProfit: Number(row.Estimated_Profit || 0),
+    status: row.Status,
+    notes: row.Notes
+  };
 }

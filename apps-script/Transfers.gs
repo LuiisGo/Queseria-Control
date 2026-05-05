@@ -26,6 +26,24 @@ function registerTransfer(payload) {
 function listTransfers(payload) {
   requireActiveUser(payload);
   return success(getRows("Transfers").map(function(row) {
-    return { id: row.ID, date: row.Date, userId: row.User_ID, originBranchId: row.Origin_Branch_ID, originBranchName: branchName(row.Origin_Branch_ID), destinationBranchId: row.Destination_Branch_ID, destinationBranchName: branchName(row.Destination_Branch_ID), status: row.Status, notes: row.Notes };
+    return mapTransfer(row);
   }));
+}
+
+function updateTransfer(payload) {
+  var admin = requireAdmin(payload);
+  requireFields(payload, ["id"]);
+  var old = getById("Transfers", payload.id);
+  if (!old) throw new Error("Envío no encontrado.");
+  var row = updateRow("Transfers", payload.id, {
+    Status: payload.status || old.Status,
+    Difference_Note: payload.differenceNote !== undefined ? payload.differenceNote : old.Difference_Note,
+    Notes: payload.notes !== undefined ? payload.notes : old.Notes
+  });
+  logAudit(admin, "UPDATE_TRANSFER", "Transfers", payload.id, old, row, "");
+  return success(mapTransfer(row), "Envío actualizado.");
+}
+
+function mapTransfer(row) {
+  return { id: row.ID, date: row.Date, userId: row.User_ID, originBranchId: row.Origin_Branch_ID, originBranchName: branchName(row.Origin_Branch_ID), destinationBranchId: row.Destination_Branch_ID, destinationBranchName: branchName(row.Destination_Branch_ID), status: row.Status, differenceNote: row.Difference_Note, notes: row.Notes };
 }

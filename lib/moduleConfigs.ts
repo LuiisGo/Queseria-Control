@@ -9,8 +9,11 @@ type ModuleConfig = {
   endpoint: string;
   columns: Column<Record<string, unknown>>[];
   fields?: FieldConfig[];
+  editFields?: FieldConfig[];
   formTitle?: string;
+  editable?: boolean;
   transformSubmit?: (values: Record<string, string>) => Record<string, unknown>;
+  transformEditSubmit?: (values: Record<string, string>) => Record<string, unknown>;
 };
 
 const money = (key: string) => (row: Record<string, unknown>) => formatCurrency(Number(row[key] || 0));
@@ -48,14 +51,16 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "distributorPrice", label: "Precio distribuidor", type: "number" },
       { name: "productionCost", label: "Costo producción", type: "number" },
       { name: "minStock", label: "Stock mínimo", type: "number" },
-      { name: "imageData", label: "Imagen del producto", type: "file", accept: "image/*" }
+      { name: "imageData", label: "Imagen del producto", type: "file", accept: "image/*" },
+      { name: "active", label: "Estado", type: "select", options: ["Activo", "Inactivo"], defaultValue: "Activo" }
     ],
     transformSubmit: (values) => ({
       ...values,
       finalPrice: Number(values.finalPrice),
       distributorPrice: Number(values.distributorPrice),
       productionCost: Number(values.productionCost),
-      minStock: Number(values.minStock)
+      minStock: Number(values.minStock),
+      active: values.active !== "Inactivo"
     })
   },
   ubicaciones: {
@@ -73,8 +78,10 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "name", label: "Nombre", required: true },
       { name: "type", label: "Tipo", type: "select", options: ["Producción", "Tienda central", "Punto de venta / sucursal"], required: true },
       { name: "address", label: "Dirección" },
+      { name: "active", label: "Estado", type: "select", options: ["Activo", "Inactivo"], defaultValue: "Activo" },
       { name: "notes", label: "Notas", type: "textarea" }
-    ]
+    ],
+    transformSubmit: (values) => ({ ...values, active: values.active !== "Inactivo" })
   },
   usuarios: {
     title: "Usuarios",
@@ -148,7 +155,13 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "lotNumber", label: "Código de lote" },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
-    transformSubmit: (values) => ({ ...values, quantity: Number(values.quantity), unitCost: Number(values.unitCost) })
+    editFields: [
+      { name: "lotNumber", label: "Código de lote" },
+      { name: "expiresAt", label: "Vencimiento", type: "date" },
+      { name: "notes", label: "Notas", type: "textarea" }
+    ],
+    transformSubmit: (values) => ({ ...values, quantity: Number(values.quantity), unitCost: Number(values.unitCost) }),
+    transformEditSubmit: (values) => values
   },
   envios: {
     title: "Envíos",
@@ -168,12 +181,18 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
+    editFields: [
+      { name: "status", label: "Estado", type: "select", options: ["Registrado", "Con diferencia", "Cerrado"] },
+      { name: "differenceNote", label: "Diferencia", type: "textarea" },
+      { name: "notes", label: "Notas", type: "textarea" }
+    ],
     transformSubmit: (values) => ({
       originBranchId: values.originBranchId,
       destinationBranchId: values.destinationBranchId,
       items: [{ productId: values.productId, quantity: Number(values.quantity), price: 0, discount: 0, subtotal: 0 }],
       notes: values.notes
-    })
+    }),
+    transformEditSubmit: (values) => values
   },
   ventas: {
     title: "Ventas",
@@ -221,8 +240,10 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "phone", label: "Teléfono" },
       { name: "email", label: "Email" },
       { name: "address", label: "Dirección" },
+      { name: "active", label: "Estado", type: "select", options: ["Activo", "Inactivo"], defaultValue: "Activo" },
       { name: "notes", label: "Notas", type: "textarea" }
-    ]
+    ],
+    transformSubmit: (values) => ({ ...values, active: values.active !== "Inactivo" })
   },
   creditos: {
     title: "Créditos",
@@ -263,7 +284,12 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "reason", label: "Motivo", type: "select", options: ["Vencido", "Dañado", "Pérdida", "Devolución no utilizable", "Otro"], required: true },
       { name: "notes", label: "Notas", type: "textarea" }
     ],
-    transformSubmit: (values) => ({ ...values, quantity: Number(values.quantity) })
+    editFields: [
+      { name: "reason", label: "Motivo", type: "select", options: ["Vencido", "Dañado", "Pérdida", "Devolución no utilizable", "Otro"], required: true },
+      { name: "notes", label: "Notas", type: "textarea" }
+    ],
+    transformSubmit: (values) => ({ ...values, quantity: Number(values.quantity) }),
+    transformEditSubmit: (values) => values
   },
   reportes: {
     title: "Reportes",
@@ -287,6 +313,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "type", label: "Tipo" },
       { key: "active", label: "Estado", render: active }
     ],
+    editable: false,
     fields: [
       { name: "adminEmails", label: "Emails admin", placeholder: "admin@empresa.com" },
       { name: "allowNegativeStock", label: "Stock negativo", type: "select", options: ["No", "Sí"] },

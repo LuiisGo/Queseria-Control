@@ -5,9 +5,30 @@ function createCreditFromSale(sale) {
 function listCredits(payload) {
   requireActiveUser(payload);
   return success(getRows("Credits").map(function(row) {
-    var distributor = getById("Distributors", row.Distributor_ID);
-    return { id: row.ID, distributorId: row.Distributor_ID, distributorName: distributor ? distributor.Name : row.Distributor_ID, saleId: row.Sale_ID, totalAmount: Number(row.Total_Amount || 0), paidAmount: Number(row.Paid_Amount || 0), balance: Number(row.Balance || 0), saleDate: row.Sale_Date, dueDate: row.Due_Date, status: row.Status };
+    return mapCredit(row);
   }));
+}
+
+function updateCredit(payload) {
+  var admin = requireAdmin(payload);
+  requireFields(payload, ["id"]);
+  var old = getById("Credits", payload.id);
+  if (!old) throw new Error("Crédito no encontrado.");
+  var total = payload.totalAmount !== undefined && payload.totalAmount !== "" ? Number(payload.totalAmount) : Number(old.Total_Amount || 0);
+  var paid = payload.paidAmount !== undefined && payload.paidAmount !== "" ? Number(payload.paidAmount) : Number(old.Paid_Amount || 0);
+  if (isNaN(total) || total < 0) throw new Error("Total inválido.");
+  if (isNaN(paid) || paid < 0) throw new Error("Pagado inválido.");
+  var balance = Math.max(0, total - paid);
+  var status = payload.status || (balance <= 0 ? "Pagado" : paid > 0 ? "Parcial" : "Pendiente");
+  var row = updateRow("Credits", payload.id, {
+    Total_Amount: total,
+    Paid_Amount: paid,
+    Balance: balance,
+    Due_Date: payload.dueDate,
+    Status: status
+  });
+  logAudit(admin, "UPDATE_CREDIT", "Credits", payload.id, old, row, payload.notes || "");
+  return success(mapCredit(row), "Crédito actualizado.");
 }
 
 function registerCreditPayment(payload) {
@@ -23,4 +44,20 @@ function registerCreditPayment(payload) {
   appendRow("Credit_Payments", payment);
   logAudit(user, "REGISTER_CREDIT_PAYMENT", "Credits", credit.ID, credit, payment, "");
   return success(payment, "Abono registrado.");
+}
+
+function mapCredit(row) {
+  var distributor = getById("Distributors", row.Distributor_ID);
+  return {
+    id: row.ID,
+    distributorId: row.Distributor_ID,
+    distributorName: distributor ? distributor.Name : row.Distributor_ID,
+    saleId: row.Sale_ID,
+    totalAmount: Number(row.Total_Amount || 0),
+    paidAmount: Number(row.Paid_Amount || 0),
+    balance: Number(row.Balance || 0),
+    saleDate: row.Sale_Date,
+    dueDate: row.Due_Date,
+    status: row.Status
+  };
 }

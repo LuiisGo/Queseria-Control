@@ -337,7 +337,17 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       }
       case "UPDATE_PRODUCT":
         return success(demoProducts, "Producto actualizado.");
-      case "SET_PRICE":
+      case "SET_PRICE": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede cambiar precios.");
+        const product = getProduct(String(payload.productId));
+        if (!product) return error("Producto no encontrado.");
+        const price = Number(payload.price || 0);
+        if (!Number.isFinite(price) || price < 0) return error("Precio inválido.");
+        if (payload.priceType === "Precio venta final" && !payload.scopeId) product.finalPrice = price;
+        if (payload.priceType === "Precio distribuidor" && !payload.scopeId) product.distributorPrice = price;
+        product.updatedAt = todayIso();
+        return success(product, "Precio actualizado.");
+      }
       case "GET_PRICE_HISTORY":
         return success(
           demoProducts.map((product) => ({
@@ -515,6 +525,15 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       }
       case "LIST_SALES":
         return success(listBySession(demoSales, payload));
+      case "UPDATE_SALE": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede editar ventas.");
+        const sale = demoSales.find((item) => item.id === payload.id);
+        if (!sale) return error("Venta no encontrada.");
+        sale.paymentMethod = (payload.paymentMethod as never) || sale.paymentMethod;
+        sale.status = (payload.status as never) || sale.status;
+        sale.notes = String(payload.notes ?? sale.notes ?? "");
+        return success(sale, "Venta actualizada.");
+      }
       case "LIST_PRODUCTION":
         return success(
           listBySession(demoProduction, payload).map((record) => ({
@@ -522,6 +541,15 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
             branchName: getBranch(record.branchId)?.name || record.branchId
           }))
         );
+      case "UPDATE_PRODUCTION": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede editar producción.");
+        const record = demoProduction.find((item) => item.id === payload.id);
+        if (!record) return error("Producción no encontrada.");
+        record.lotNumber = String(payload.lotNumber ?? record.lotNumber ?? "");
+        record.expiresAt = String(payload.expiresAt ?? record.expiresAt ?? "");
+        record.notes = String(payload.notes ?? record.notes ?? "");
+        return success(record, "Producción actualizada.");
+      }
       case "LIST_TRANSFERS":
         return success(
           demoTransfers.map((transfer) => ({
@@ -530,6 +558,15 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
             destinationBranchName: getBranch(transfer.destinationBranchId)?.name || transfer.destinationBranchId
           }))
         );
+      case "UPDATE_TRANSFER": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede editar envíos.");
+        const transfer = demoTransfers.find((item) => item.id === payload.id);
+        if (!transfer) return error("Envío no encontrado.");
+        transfer.status = (payload.status as never) || transfer.status;
+        transfer.differenceNote = String(payload.differenceNote ?? transfer.differenceNote ?? "");
+        transfer.notes = String(payload.notes ?? transfer.notes ?? "");
+        return success(transfer, "Envío actualizado.");
+      }
       case "LIST_WASTE":
         return success(
           listBySession(demoWaste, payload).map((record) => ({
@@ -537,6 +574,14 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
             branchName: getBranch(record.branchId)?.name || record.branchId
           }))
         );
+      case "UPDATE_WASTE": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede editar pérdidas.");
+        const record = demoWaste.find((item) => item.id === payload.id);
+        if (!record) return error("Pérdida no encontrada.");
+        record.reason = (payload.reason as never) || record.reason;
+        record.notes = String(payload.notes ?? record.notes ?? "");
+        return success(record, "Pérdida actualizada.");
+      }
       case "REGISTER_WASTE": {
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
@@ -592,6 +637,21 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         credit.balance = Math.max(0, credit.totalAmount - credit.paidAmount);
         credit.status = credit.balance <= 0 ? "Pagado" : "Parcial";
         return success(credit, "Abono registrado.");
+      }
+      case "UPDATE_CREDIT": {
+        if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede editar créditos.");
+        const credit = demoCredits.find((item) => item.id === payload.id);
+        if (!credit) return error("Crédito no encontrado.");
+        const total = Number(payload.totalAmount ?? credit.totalAmount);
+        const paid = Number(payload.paidAmount ?? credit.paidAmount);
+        if (!Number.isFinite(total) || total < 0) return error("Total inválido.");
+        if (!Number.isFinite(paid) || paid < 0) return error("Pagado inválido.");
+        credit.totalAmount = total;
+        credit.paidAmount = paid;
+        credit.balance = Math.max(0, total - paid);
+        credit.dueDate = String(payload.dueDate || "");
+        credit.status = (payload.status as never) || (credit.balance <= 0 ? "Pagado" : paid > 0 ? "Parcial" : "Pendiente");
+        return success(credit, "Crédito actualizado.");
       }
       case "LIST_CREDITS":
         return success(demoCredits);

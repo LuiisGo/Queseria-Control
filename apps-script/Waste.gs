@@ -14,8 +14,25 @@ function listWaste(payload) {
   var user = requireActiveUser(payload);
   var branches = user.Role === "Admin" ? null : userAssignedBranches(user.ID);
   return success(getRows("Waste").filter(function(row) { return !branches || branches.indexOf(row.Branch_ID) > -1; }).map(function(row) {
-    return { id: row.ID, date: row.Date, userId: row.User_ID, branchId: row.Branch_ID, productId: row.Product_ID, productName: productName(row.Product_ID), lotId: row.Lot_ID, quantity: Number(row.Quantity || 0), reason: row.Reason, notes: row.Notes };
+    return mapWaste(row);
   }));
+}
+
+function updateWaste(payload) {
+  var admin = requireAdmin(payload);
+  requireFields(payload, ["id"]);
+  var old = getById("Waste", payload.id);
+  if (!old) throw new Error("Pérdida no encontrada.");
+  var row = updateRow("Waste", payload.id, {
+    Reason: payload.reason || old.Reason,
+    Notes: payload.notes !== undefined ? payload.notes : old.Notes
+  });
+  logAudit(admin, "UPDATE_WASTE", "Waste", payload.id, old, row, "");
+  return success(mapWaste(row), "Pérdida actualizada.");
+}
+
+function mapWaste(row) {
+  return { id: row.ID, date: row.Date, userId: row.User_ID, branchId: row.Branch_ID, branchName: branchName(row.Branch_ID), productId: row.Product_ID, productName: productName(row.Product_ID), lotId: row.Lot_ID, quantity: Number(row.Quantity || 0), reason: row.Reason, notes: row.Notes };
 }
 
 function registerReturn(payload) {

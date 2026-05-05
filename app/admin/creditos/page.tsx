@@ -1,8 +1,7 @@
 "use client";
 
-import { ModulePage } from "@/components/ModulePage";
-import { adminModules } from "@/lib/moduleConfigs";
+import { AdminCreditsManager } from "@/components/AdminCreditsManager";
 
 export default function CreditosPage() {
-  return <ModulePage {...adminModules.creditos} />;
+  return <AdminCreditsManager />;
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callBackend } from "@/lib/appsScriptClient";
+import { cachedBackend, clearBackendCache } from "@/lib/backendCache";
 import { getSession } from "@/lib/session";
 
 type ActionMap = {
@@ -20,7 +21,7 @@ export function fail(error: string, status = 400) {
 export async function handleList(action: string, request: NextRequest) {
   const session = getSession();
   const query = Object.fromEntries(request.nextUrl.searchParams.entries());
-  const response = await callBackend(action, { ...query, currentUser: session });
+  const response = await cachedBackend(action, { ...query, currentUser: session });
   return NextResponse.json(response, { status: response.success ? 200 : 400 });
 }
 
@@ -28,6 +29,7 @@ export async function handleWrite(action: string, request: NextRequest) {
   const session = getSession();
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   const response = await callBackend(action, { ...body, currentUser: session });
+  if (response.success) clearBackendCache();
   return NextResponse.json(response, { status: response.success ? 200 : 400 });
 }
 
