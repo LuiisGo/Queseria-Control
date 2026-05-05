@@ -3,6 +3,8 @@ function getAdminDashboard(payload) {
   var sales = getRows("Sales");
   var inventory = listInventory(payload).data;
   var credits = listCredits(payload).data;
+  var production = getRows("Production");
+  var waste = getRows("Waste");
   var total = sales.reduce(function(sum, row) { return sum + Number(row.Total || 0); }, 0);
   return success({
     kpis: {
@@ -12,19 +14,92 @@ function getAdminDashboard(payload) {
       estimatedProfit: sales.reduce(function(sum, row) { return sum + Number(row.Estimated_Profit || 0); }, 0),
       pendingCredits: credits.reduce(function(sum, row) { return sum + Number(row.balance || 0); }, 0),
       lowStockCount: inventory.filter(function(row) { return row.quantity <= row.minStock; }).length,
-      wasteTotal: getRows("Waste").reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0),
-      productionTotal: getRows("Production").reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0)
+      wasteTotal: waste.reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0),
+      productionTotal: production.reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0)
     },
     salesByBranch: aggregateSalesBy("Branch_ID", sales, branchName),
-    salesByProduct: [],
-    salesByPaymentMethod: aggregateSalesBy("Payment_Method", sales, function(value) { return value; }),
-    monthlyComparison: [],
-    topProducts: [],
-    topDistributors: [],
+    salesByProduct: aggregateSaleUnitsByProduct(),
+    salesByPaymentMethod: aggregateCountBy("Payment_Method", sales, function(value) { return value || "Sin método"; }),
+    monthlyComparison: monthlySalesComparison(sales),
+    productionTrend: monthlyProductionWaste(production, waste),
+    inventoryByBranch: aggregateInventoryByBranch(inventory),
+    wasteByReason: aggregateRowsByQuantity("Reason", waste, function(value) { return value || "Sin motivo"; }),
+    topProducts: aggregateSaleUnitsByProduct().map(function(row) { return { name: row.name, units: row.total }; }),
+    topDistributors: aggregateSalesBy("Distributor_ID", sales.filter(function(row) { return row.Distributor_ID; }), distributorName),
     lowStock: inventory.filter(function(row) { return row.quantity <= row.minStock; }),
     expiringLots: getRows("Inventory_Lots").filter(function(lot) { return Number(lot.Quantity || 0) > 0; }).map(mapLot),
     pendingCredits: credits.filter(function(row) { return row.balance > 0; })
   });
+}
+
+function aggregateCountBy(key, rows, labelFn) {
+  var map = {};
+  rows.forEach(function(row) {
+    var label = labelFn(row[key] || "");
+    map[label] = (map[label] || 0) + 1;
+  });
+  return Object.keys(map).map(function(name) { return { name: name, total: map[name] }; });
+}
+
+function aggregateRowsByQuantity(key, rows, labelFn) {
+  var map = {};
+  rows.forEach(function(row) {
+    var label = labelFn(row[key] || "");
+    map[label] = (map[label] || 0) + Number(row.Quantity || 0);
+  });
+  return Object.keys(map).map(function(name) { return { name: name, total: map[name] }; });
+}
+
+function aggregateSaleUnitsByProduct() {
+  var saleItems = getRows("Sale_Items");
+  var map = {};
+  saleItems.forEach(function(item) {
+    var label = productName(item.Product_ID);
+    map[label] = (map[label] || 0) + Number(item.Quantity || 0);
+  });
+  return Object.keys(map).map(function(name) { return { name: name, total: map[name] }; });
+}
+
+function aggregateInventoryByBranch(inventory) {
+  var map = {};
+  inventory.forEach(function(item) {
+    map[item.branchName] = (map[item.branchName] || 0) + Number(item.quantity || 0);
+  });
+  return Object.keys(map).map(function(name) { return { name: name, quantity: map[name] }; });
+}
+
+function monthlySalesComparison(sales) {
+  var months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  var map = {};
+  sales.forEach(function(row) {
+    var date = new Date(row.Date);
+    if (isNaN(date.getTime())) return;
+    var key = months[date.getMonth()];
+    if (!map[key]) map[key] = { month: key, sales: 0, profit: 0 };
+    map[key].sales += Number(row.Total || 0);
+    map[key].profit += Number(row.Estimated_Profit || 0);
+  });
+  return Object.keys(map).map(function(key) { return map[key]; });
+}
+
+function monthlyProductionWaste(production, waste) {
+  var months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  var map = {};
+  production.forEach(function(row) {
+    var date = new Date(row.Date);
+    if (isNaN(date.getTime())) return;
+    var key = months[date.getMonth()];
+    if (!map[key]) map[key] = { month: key, production: 0, waste: 0 };
+    map[key].production += Number(row.Quantity || 0);
+  });
+  waste.forEach(function(row) {
+    var date = new Date(row.Date);
+    if (isNaN(date.getTime())) return;
+    var key = months[date.getMonth()];
+    if (!map[key]) map[key] = { month: key, production: 0, waste: 0 };
+    map[key].waste += Number(row.Quantity || 0);
+  });
+  return Object.keys(map).map(function(key) { return map[key]; });
 }
 
 function aggregateSalesBy(key, sales, labelFn) {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertTriangle, ArrowRight, Boxes, CreditCard, HandCoins, PackageCheck, ShoppingCart, TrendingUp, Truck, Users, Wheat } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
 import { DataTable } from "@/components/DataTable";
 import { StatCard } from "@/components/StatCard";
@@ -80,6 +80,7 @@ export function AdminDashboard() {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Legend />
                 <Line type="monotone" dataKey="sales" stroke="#171615" strokeWidth={3} />
                 <Line type="monotone" dataKey="profit" stroke="#b18a52" strokeWidth={3} />
               </LineChart>
@@ -96,25 +97,77 @@ export function AdminDashboard() {
                     <Cell key={entry.name} fill={colors[index % colors.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip formatter={(value) => `${Number(value)} venta(s)`} />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
       </section>
 
-      <section className="panel p-4">
-        <h2 className="font-semibold">Ventas por sucursal</h2>
-        <div className="mt-4 h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.salesByBranch}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eadbc3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Bar dataKey="total" fill="#171615" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      <section className="grid gap-5 xl:grid-cols-3">
+        <div className="panel p-4 xl:col-span-2">
+          <h2 className="font-semibold">Ventas por sucursal</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.salesByBranch}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eadbc3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Bar dataKey="total" fill="#171615" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="panel p-4">
+          <h2 className="font-semibold">Unidades por producto</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={data.salesByProduct} dataKey="total" nameKey="name" outerRadius={92} label>
+                  {data.salesByProduct.map((entry, index) => (
+                    <Cell key={entry.name} fill={colors[index % colors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `${Number(value)} unidad(es)`} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+        <div className="panel p-4">
+          <h2 className="font-semibold">Producción vs pérdidas</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data.productionTrend || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eadbc3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => `${Number(value)} unidad(es)`} />
+                <Legend />
+                <Line type="monotone" dataKey="production" name="Producción" stroke="#171615" strokeWidth={3} />
+                <Line type="monotone" dataKey="waste" name="Pérdidas" stroke="#b18a52" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="panel p-4">
+          <h2 className="font-semibold">Inventario por ubicación</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.inventoryByBranch || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eadbc3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => `${Number(value)} unidad(es)`} />
+                <Bar dataKey="quantity" name="Stock" fill="#8f7652" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </section>
 

@@ -44,6 +44,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { name: "presentation", label: "Presentación" },
       { name: "category", label: "Categoría" },
       { name: "unit", label: "Unidad", placeholder: "unidad" },
+      { name: "productionDate", label: "Fecha para SKU", type: "date" },
       { name: "finalPrice", label: "Precio final", type: "number", defaultValue: "0", required: true },
       { name: "distributorPrice", label: "Precio distribuidor", type: "number" },
       { name: "productionCost", label: "Costo producción", type: "number" },
@@ -142,7 +143,7 @@ export const adminModules: Record<string, ModuleConfig> = {
     ],
     fields: [
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
-      { name: "branchId", label: "Destino", type: "select", optionSource: "branches", optionFilter: "central", defaultValue: "BR001", required: true },
+      { name: "branchId", label: "Destino", type: "select", optionSource: "branches", optionFilter: "central", defaultValue: "AGM001", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "unitCost", label: "Costo unitario", type: "number" },
       { name: "lotNumber", label: "Código de lote" },
@@ -163,8 +164,8 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "originBranchId", label: "Sale de", type: "select", optionSource: "branches", optionFilter: "central", defaultValue: "BR001", required: true },
-      { name: "destinationBranchId", label: "Enviar a", type: "select", optionSource: "branches", optionFilter: "subbranches", defaultValue: "BR002", required: true },
+      { name: "originBranchId", label: "Sale de", type: "select", optionSource: "branches", optionFilter: "central", defaultValue: "AGM001", required: true },
+      { name: "destinationBranchId", label: "Enviar a", type: "select", optionSource: "branches", optionFilter: "subbranches", defaultValue: "AGM002", required: true },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "notes", label: "Notas", type: "textarea" }
@@ -189,7 +190,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "status", label: "Estado" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", optionFilter: "assigned", defaultValue: "BR001", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", optionFilter: "assigned", defaultValue: "AGM001", required: true },
       { name: "customerType", label: "Cliente", type: "select", options: ["Cliente general", "Distribuidor/mayorista"], required: true },
       { name: "distributorId", label: "Distribuidor", type: "select", optionSource: "distributors" },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
@@ -258,7 +259,7 @@ export const adminModules: Record<string, ModuleConfig> = {
       { key: "notes", label: "Notas" }
     ],
     fields: [
-      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", optionFilter: "assigned", defaultValue: "BR001", required: true },
+      { name: "branchId", label: "Ubicación", type: "select", optionSource: "branches", optionFilter: "assigned", defaultValue: "AGM001", required: true },
       { name: "productId", label: "Producto", type: "select", optionSource: "products", required: true },
       { name: "quantity", label: "Cantidad", type: "number", required: true },
       { name: "reason", label: "Motivo", type: "select", options: ["Vencido", "Dañado", "Pérdida", "Devolución no utilizable", "Otro"], required: true },

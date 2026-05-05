@@ -78,6 +78,33 @@ function nextId(sheetName, prefix) {
   return prefix + String(count).padStart(3, "0");
 }
 
+function productPrefix(name) {
+  var normalized = String(name || "").toLowerCase();
+  if (normalized.indexOf("queso grande") > -1) return "QG";
+  if (normalized.indexOf("queso pequeño") > -1 || normalized.indexOf("queso pequeno") > -1) return "QP";
+  if (normalized.indexOf("queso mediano") > -1) return "QM";
+  if (normalized.indexOf("crema vaso") > -1) return "CV";
+  if (normalized.indexOf("crema bolsa") > -1) return "CB";
+  var parts = normalized.split(/\s+/).filter(function(part) { return part; });
+  var prefix = parts.map(function(part) { return part.charAt(0); }).join("").toUpperCase();
+  return (prefix || "PR").slice(0, 4).padEnd(2, "X");
+}
+
+function dateCode(value) {
+  var date = value ? new Date(value) : new Date();
+  if (isNaN(date.getTime())) date = new Date();
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, "yyMMdd");
+}
+
+function nextProductSku(name, productionDate) {
+  var base = (productPrefix(name) + dateCode(productionDate)).slice(0, 10);
+  var matches = getRows("Products").filter(function(product) {
+    return String(product.ID || "").indexOf(base) === 0 || String(product.Code || "").indexOf(base) === 0;
+  });
+  if (!matches.length) return base;
+  return (base + String(matches.length + 1).padStart(2, "0")).slice(0, 12);
+}
+
 function parseJson(value, fallback) {
   if (!value) return fallback;
   try { return JSON.parse(value); } catch (error) { return fallback; }

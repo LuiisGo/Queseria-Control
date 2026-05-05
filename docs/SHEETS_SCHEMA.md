@@ -33,12 +33,12 @@ Una sola Spreadsheet con pestañas por módulo.
 ## IDs
 
 - Users: `USR001`
-- Branches: `BR001`
-- Products: `LSA001`
+- Branches: `AGM001`
+- Products/SKU: `QG260504` usando código de producto + fecha de producción `YYMMDD`; si se repite el mismo día, se agrega secuencia, por ejemplo `QG26050402`.
 - Sales: `SALE001`
 - Transfers: `TRF001`
 - Production: `PROD001`
-- Distributors: `DIST001`
+- Distributors: `ALIS001`
 - Credits: `CRD001`
 
 Los headers exactos viven en `apps-script/Config.gs` y se crean automáticamente con `setupSpreadsheet()`. `Products` incluye `Image_Data` para imagen subida en MVP y `Image_Url` para migración futura a Drive.

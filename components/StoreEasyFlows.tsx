@@ -109,13 +109,14 @@ export function StoreProductionFlow() {
   const [expiresAt, setExpiresAt] = useState("");
   const [saving, setSaving] = useState(false);
   const product = state.products.find((item) => item.id === productId);
+  const central = state.branches.find((branch) => branch.type === "Tienda central");
   const isCentral = state.summary?.branchType === "Tienda central";
   if (state.user && !hasPermission(state.user, "can_register_entries")) return <BlockedFlow title="Registrar producción" permission="can_register_entries" />;
 
   async function submit() {
     if (!product || quantity <= 0 || !lotNumber || !expiresAt) return toast.error("Completa producto, cantidad, lote y vencimiento.");
     setSaving(true);
-    const response = await postJson("/api/production", { productId, branchId: "BR001", quantity, lotNumber, expiresAt });
+    const response = await postJson("/api/production", { productId, branchId: central?.id, quantity, lotNumber, expiresAt });
     setSaving(false);
     if (response.success) {
       toast.success("Producción guardada y sumada a Central.");
@@ -138,7 +139,7 @@ export function StoreProductionFlow() {
       {isCentral || !state.summary ? (
         <>
       <Step title="1. ¿Qué se produjo?">
-        <ProductGrid products={state.products} inventory={state.inventory} branchId="BR001" selectedId={productId} onSelect={setProductId} showStock={false} />
+        <ProductGrid products={state.products} inventory={state.inventory} branchId={central?.id || ""} selectedId={productId} onSelect={setProductId} showStock={false} />
       </Step>
       <Step title="2. ¿Cuántas unidades?">
         <QuantityPicker value={quantity} onChange={setQuantity} />
@@ -174,9 +175,10 @@ export function StoreTransferFlow() {
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [saving, setSaving] = useState(false);
+  const central = state.branches.find((branch) => branch.type === "Tienda central");
   const destination = state.branches.find((branch) => branch.id === destinationBranchId);
   const product = state.products.find((item) => item.id === productId);
-  const inventory = state.inventory.find((item) => item.productId === productId && item.branchId === "BR001");
+  const inventory = state.inventory.find((item) => item.productId === productId && item.branchId === central?.id);
   const stock = inventory?.quantity || 0;
   const isCentral = state.summary?.branchType === "Tienda central";
   if (state.user && !hasPermission(state.user, "can_register_transfers")) return <BlockedFlow title="Enviar a tienda" permission="can_register_transfers" />;
@@ -186,7 +188,7 @@ export function StoreTransferFlow() {
     if (quantity > stock) return toast.error("No hay suficiente stock en Central.");
     setSaving(true);
     const response = await postJson("/api/transfers", {
-      originBranchId: "BR001",
+      originBranchId: central?.id,
       destinationBranchId,
       items: [{ productId, quantity, price: 0, discount: 0, subtotal: 0 }]
     });
@@ -214,7 +216,7 @@ export function StoreTransferFlow() {
         <ButtonGrid options={state.branches.filter((branch) => branch.type === "Punto de venta / sucursal").map((branch) => ({ id: branch.id, label: branch.name }))} value={destinationBranchId} onChange={setDestinationBranchId} />
       </Step>
       <Step title="2. ¿Qué producto?">
-        <ProductGrid products={state.products} inventory={state.inventory} branchId="BR001" selectedId={productId} onSelect={(id) => { setProductId(id); setQuantity(1); }} />
+        <ProductGrid products={state.products} inventory={state.inventory} branchId={central?.id || ""} selectedId={productId} onSelect={(id) => { setProductId(id); setQuantity(1); }} />
       </Step>
       <Step title="3. Cantidad">
         <QuantityPicker value={quantity} max={stock} onChange={setQuantity} />

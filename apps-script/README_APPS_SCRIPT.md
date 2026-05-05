@@ -32,7 +32,13 @@ Configura:
 
 `setupSpreadsheet()` es destructivo: limpia y recrea pestañas. Úsalo para inicializar, no para actualizar una hoja con datos reales.
 
-El setup inicial crea `Central`, `Agromarket 1`, productos SKU `LSA001` a `LSA005`, distribuidores `Mazate` y `CAES`, y el admin `admin/admin123`.
+El setup inicial crea `Central`, `Agromarket 1`, productos SKU `QG260504` a `CB260504`, distribuidores `Mazate` y `CAES`, y el admin `admin/admin123`.
+
+Formato de códigos:
+
+- Productos/SKU: código de producto + fecha `YYMMDD`, por ejemplo `QG260504`; si se repite, `QG26050402`.
+- Ubicaciones: `AGM001`, `AGM002`.
+- Distribuidores: `ALIS001`, `ALIS002`.
 
 ## Request
 

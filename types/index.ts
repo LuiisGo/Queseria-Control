@@ -211,6 +211,9 @@ export type DashboardData = {
   salesByProduct: Array<{ name: string; total: number }>;
   salesByPaymentMethod: Array<{ name: string; total: number }>;
   monthlyComparison: Array<{ month: string; sales: number; profit: number }>;
+  productionTrend?: Array<{ month: string; production: number; waste: number }>;
+  inventoryByBranch?: Array<{ name: string; quantity: number }>;
+  wasteByReason?: Array<{ name: string; total: number }>;
   topProducts: Array<{ name: string; units: number }>;
   topDistributors: Array<{ name: string; total: number }>;
   lowStock: InventoryItem[];

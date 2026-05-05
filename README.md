@@ -77,6 +77,12 @@ NEXT_PUBLIC_DEMO_MODE=false
 
 El navegador nunca recibe `APP_SECRET`; todo request pasa primero por `/api/*`.
 
+## Formato de IDs
+
+- Productos/SKU: 8 a 12 caracteres con código de producto + fecha `YYMMDD`, por ejemplo `QG260504`.
+- Ubicaciones: `AGM001`, `AGM002`, etc.
+- Distribuidores: `ALIS001`, `ALIS002`, etc.
+
 ## Netlify
 
 Este repo incluye `netlify.toml` con `@netlify/plugin-nextjs`.

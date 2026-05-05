@@ -12,8 +12,8 @@ function setupSpreadsheet() {
   appendRow("Settings", { Key: "admin_emails", Value: "", Description: "Correos separados por coma para notificaciones", Updated_At: nowIso() });
   appendRow("Settings", { Key: "notification_low_stock", Value: "true", Description: "Notificación stock bajo", Updated_At: nowIso() });
 
-  appendRow("Branches", { ID: "BR001", Name: "Central", Type: "Tienda central", Address: "Central", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
-  appendRow("Branches", { ID: "BR002", Name: "Agromarket 1", Type: "Punto de venta / sucursal", Address: "Agromarket 1", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
+  appendRow("Branches", { ID: "AGM001", Name: "Central", Type: "Tienda central", Address: "Central", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
+  appendRow("Branches", { ID: "AGM002", Name: "Agromarket 1", Type: "Punto de venta / sucursal", Address: "Agromarket 1", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
 
   var salt = Utilities.getUuid();
   appendRow("Users", {
@@ -27,17 +27,17 @@ function setupSpreadsheet() {
     Created_At: nowIso(),
     Updated_At: nowIso()
   });
-  appendRow("User_Branches", { ID: "UB001", User_ID: "USR001", Branch_ID: "BR001", Created_At: nowIso() });
-  appendRow("User_Branches", { ID: "UB002", User_ID: "USR001", Branch_ID: "BR002", Created_At: nowIso() });
+  appendRow("User_Branches", { ID: "UB001", User_ID: "USR001", Branch_ID: "AGM001", Created_At: nowIso() });
+  appendRow("User_Branches", { ID: "UB002", User_ID: "USR001", Branch_ID: "AGM002", Created_At: nowIso() });
 
-  seedProduct("LSA001", "Queso grande", "Grande", "Quesos", 10);
-  seedProduct("LSA002", "Queso pequeño", "Pequeño", "Quesos", 12);
-  seedProduct("LSA003", "Queso mediano", "Mediano", "Quesos", 10);
-  seedProduct("LSA004", "Crema vaso", "Vaso", "Cremas", 18);
-  seedProduct("LSA005", "Crema bolsa", "Bolsa", "Cremas", 18);
+  seedProduct("QG260504", "Queso grande", "Grande", "Quesos", 10);
+  seedProduct("QP260504", "Queso pequeño", "Pequeño", "Quesos", 12);
+  seedProduct("QM260504", "Queso mediano", "Mediano", "Quesos", 10);
+  seedProduct("CV260504", "Crema vaso", "Vaso", "Cremas", 18);
+  seedProduct("CB260504", "Crema bolsa", "Bolsa", "Cremas", 18);
 
-  appendRow("Distributors", { ID: "DIST001", Name: "Mazate", Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
-  appendRow("Distributors", { ID: "DIST002", Name: "CAES", Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
+  appendRow("Distributors", { ID: "ALIS001", Name: "Mazate", Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
+  appendRow("Distributors", { ID: "ALIS002", Name: "CAES", Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
 
   return success({ spreadsheetId: spreadsheet.getId(), sheets: Object.keys(SHEETS) }, "Spreadsheet configurado.");
 }

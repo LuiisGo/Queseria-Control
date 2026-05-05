@@ -29,6 +29,36 @@ function nextId(prefix: string, currentLength: number) {
   return `${prefix}${String(currentLength + 1).padStart(3, "0")}`;
 }
 
+function productPrefix(name: string) {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("queso grande")) return "QG";
+  if (normalized.includes("queso pequeño") || normalized.includes("queso pequeno")) return "QP";
+  if (normalized.includes("queso mediano")) return "QM";
+  if (normalized.includes("crema vaso")) return "CV";
+  if (normalized.includes("crema bolsa")) return "CB";
+  return normalized
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 4)
+    .padEnd(2, "X")
+    .toUpperCase();
+}
+
+function dateCode(value?: string) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return "260504";
+  return `${String(date.getFullYear()).slice(2)}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function nextProductSku(name: string, productionDate?: string) {
+  const base = `${productPrefix(name)}${dateCode(productionDate)}`.slice(0, 10);
+  const matches = demoProducts.filter((product) => product.id.startsWith(base));
+  if (!matches.length) return base;
+  return `${base}${String(matches.length + 1).padStart(2, "0")}`.slice(0, 12);
+}
+
 function success<T>(data: T, message = ""): ApiResponse<T> {
   return { success: true, data, message };
 }
@@ -197,7 +227,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         const username = String(payload.username || "").trim();
         if (!username) return error("Usuario es obligatorio.");
         if (demoUsers.some((candidate) => candidate.username.toLowerCase() === username.toLowerCase())) return error("Ese usuario ya existe.");
-        const assignedBranches = Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : ["BR001"];
+        const assignedBranches = Array.isArray(payload.assignedBranches) ? (payload.assignedBranches as string[]) : [demoBranches[0]?.id].filter(Boolean);
         const permissions = payload.permissions && typeof payload.permissions === "object" ? (payload.permissions as typeof allStorePermissions) : allStorePermissions;
         const user: SessionUser = {
           id: nextId("USR", demoUsers.length),
@@ -242,7 +272,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "CREATE_BRANCH": {
         if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede crear ubicaciones.");
         const branch = {
-          id: nextId("BR", demoBranches.length),
+          id: nextId("AGM", demoBranches.length),
           name: String(payload.name || "Nueva ubicación"),
           type: (payload.type as never) || "Punto de venta / sucursal",
           active: true,
@@ -260,10 +290,12 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         return success(demoProducts);
       case "CREATE_PRODUCT": {
         if (!assertAdmin(currentUser(payload))) return error("Solo Admin puede crear productos.");
+        const name = String(payload.name || "Nuevo producto");
+        const sku = nextProductSku(name, String(payload.productionDate || payload.createdAt || ""));
         const product: Product = {
-          id: nextId("LSA", demoProducts.length),
-          code: nextId("LSA", demoProducts.length),
-          name: String(payload.name || "Nuevo producto"),
+          id: sku,
+          code: sku,
+          name,
           imageData: String(payload.imageData || ""),
           unit: String(payload.unit || "unidad"),
           presentation: String(payload.presentation || ""),
@@ -338,7 +370,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
       case "REGISTER_TRANSFER": {
         const user = currentUser(payload);
         if (!user) return error("Sesión requerida.");
-        const originBranchId = String(payload.originBranchId || "BR001");
+        const originBranchId = String(payload.originBranchId || demoBranches.find((branch) => branch.type === "Tienda central")?.id || "");
         const destinationBranchId = String(payload.destinationBranchId || "");
         assertAssignedBranch(user, originBranchId);
         if (user.role === "Tienda" && !user.permissions.can_register_transfers) return error("No tiene permiso para enviar producto a tiendas.");
@@ -481,7 +513,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         return success({ id: nextId("RET", 0), ...payload, date: todayIso() }, "Devolución registrada.");
       case "CREATE_DISTRIBUTOR": {
         const distributor = {
-          id: nextId("DIST", demoDistributors.length),
+          id: nextId("ALIS", demoDistributors.length),
           name: String(payload.name || "Nuevo distribuidor"),
           phone: String(payload.phone || ""),
           email: String(payload.email || ""),
@@ -514,7 +546,7 @@ export async function runDemoAction(action: string, payload: Record<string, unkn
         return success(buildDashboardData());
       case "GET_STORE_DAILY_SUMMARY": {
         const user = currentUser(payload);
-        return success(buildStoreSummary(String(payload.branchId || user?.assignedBranches[0] || "BR001")));
+        return success(buildStoreSummary(String(payload.branchId || user?.assignedBranches[0] || demoBranches[0]?.id || "")));
       }
       case "CREATE_CORRECTION_REQUEST":
       case "REVIEW_CORRECTION_REQUEST":

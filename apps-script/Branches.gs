@@ -8,7 +8,7 @@ function listBranches(payload) {
 function createBranch(payload) {
   var admin = requireAdmin(payload);
   requireFields(payload, ["name", "type"]);
-  var row = { ID: nextId("Branches", "BR"), Name: payload.name, Type: payload.type, Address: payload.address || "", Active: true, Notes: payload.notes || "", Created_At: nowIso(), Updated_At: nowIso() };
+  var row = { ID: nextId("Branches", "AGM"), Name: payload.name, Type: payload.type, Address: payload.address || "", Active: true, Notes: payload.notes || "", Created_At: nowIso(), Updated_At: nowIso() };
   appendRow("Branches", row);
   logAudit(admin, "CREATE_BRANCH", "Branches", row.ID, null, row, "");
   return success(row, "Ubicación creada.");

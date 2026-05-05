@@ -97,10 +97,17 @@ El setup crea:
 - Las 25 pestañas.
 - Headers correctos.
 - Settings base.
-- Ubicaciones iniciales: `BR001 Central`, `BR002 Agromarket 1`.
-- Productos iniciales con SKU `LSA001` a `LSA005`.
-- Distribuidores `DIST001 Mazate`, `DIST002 CAES`.
+- Ubicaciones iniciales: `AGM001 Central`, `AGM002 Agromarket 1`.
+- Productos iniciales con SKU `QG260504` a `CB260504`.
+- Distribuidores `ALIS001 Mazate`, `ALIS002 CAES`.
 - Admin inicial: `admin / admin123`.
+
+Formato de IDs:
+
+- Producto/SKU: código del producto + fecha de producción `YYMMDD`, de 8 a 12 caracteres. Ejemplo: `QG260504`.
+- Si se crea otro SKU del mismo producto en la misma fecha, se agrega secuencia: `QG26050402`.
+- Ubicaciones: `AGM001`, `AGM002`, `AGM003`.
+- Distribuidores: `ALIS001`, `ALIS002`, `ALIS003`.
 
 ## 6. Desplegar Apps Script como Web App
 
