@@ -206,6 +206,7 @@ export type DashboardData = {
     lowStockCount: number;
     wasteTotal: number;
     productionTotal: number;
+    activeTransfers: number;
   };
   salesByBranch: Array<{ name: string; total: number }>;
   salesByProduct: Array<{ name: string; total: number }>;

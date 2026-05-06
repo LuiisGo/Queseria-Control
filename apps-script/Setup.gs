@@ -1,32 +1,33 @@
-function setupSpreadsheet() {
-  var setupPasswords = getSetupPasswords();
+function setupSpreadsheet(setupPasswordsOverride) {
   var spreadsheet = getSpreadsheet();
   Object.keys(SHEETS).forEach(function(name) {
     var sheet = spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
-    var headers = SHEETS[name];
-    sheet.clear();
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    ensureHeaders(sheet, SHEETS[name]);
     sheet.setFrozenRows(1);
   });
 
-  appendRow("Settings", { Key: "allow_negative_stock", Value: "false", Description: "Permite vender sin stock disponible", Updated_At: nowIso() });
-  appendRow("Settings", { Key: "admin_emails", Value: "", Description: "Correos separados por coma para notificaciones", Updated_At: nowIso() });
-  appendRow("Settings", { Key: "notification_low_stock", Value: "true", Description: "Notificación stock bajo", Updated_At: nowIso() });
-  appendRow("Settings", { Key: "notification_expiring_lots", Value: "true", Description: "Notificación 2 días antes del vencimiento de lote", Updated_At: nowIso() });
+  seedSettingIfMissing("allow_negative_stock", "false", "Permite vender sin stock disponible");
+  seedSettingIfMissing("admin_emails", "", "Correos separados por coma para notificaciones");
+  seedSettingIfMissing("notification_low_stock", "true", "Notificación stock bajo");
+  seedSettingIfMissing("notification_expiring_lots", "true", "Notificación 2 días antes del vencimiento de lote");
 
-  appendRow("Branches", { ID: "AGM001", Name: "Central", Type: "Tienda central", Address: "Central", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
-  appendRow("Branches", { ID: "AGM002", Name: "Agromarket 1", Type: "Punto de venta / sucursal", Address: "Agromarket 1", Active: true, Created_At: nowIso(), Updated_At: nowIso() });
+  seedBranchIfMissing("AGM001", "Central", "Tienda central");
+  seedBranchIfMissing("AGM002", "Agromarket 1", "Punto de venta / sucursal");
 
-  seedUser("USR001", "Admin San Antonio", CONFIG.DEFAULT_ADMIN_USER, setupPasswords.admin, "Admin");
-  seedUser("USR002", "Central", "tienda", setupPasswords.central, "Tienda");
-  seedUser("USR003", "Agromarket 1", "agromarket1", setupPasswords.agromarket, "Tienda");
+  var setupPasswords = setupPasswordsOverride || null;
+  if (!setupPasswords && (!getById("Users", "USR001") || !getById("Users", "USR002") || !getById("Users", "USR003"))) {
+    setupPasswords = getSetupPasswords();
+  }
+  if (!getById("Users", "USR001")) seedUser("USR001", "Admin San Antonio", CONFIG.DEFAULT_ADMIN_USER, setupPasswords.admin, "Admin");
+  if (!getById("Users", "USR002")) seedUser("USR002", "Central", "tienda", setupPasswords.central, "Tienda");
+  if (!getById("Users", "USR003")) seedUser("USR003", "Agromarket 1", "agromarket1", setupPasswords.agromarket, "Tienda");
 
-  appendRow("User_Branches", { ID: "UB001", User_ID: "USR001", Branch_ID: "AGM001", Created_At: nowIso() });
-  appendRow("User_Branches", { ID: "UB002", User_ID: "USR001", Branch_ID: "AGM002", Created_At: nowIso() });
-  appendRow("User_Branches", { ID: "UB003", User_ID: "USR002", Branch_ID: "AGM001", Created_At: nowIso() });
-  appendRow("User_Branches", { ID: "UB004", User_ID: "USR003", Branch_ID: "AGM002", Created_At: nowIso() });
+  seedUserBranchIfMissing("USR001", "AGM001");
+  seedUserBranchIfMissing("USR001", "AGM002");
+  seedUserBranchIfMissing("USR002", "AGM001");
+  seedUserBranchIfMissing("USR003", "AGM002");
 
-  seedPermissions("USR002", {
+  seedPermissionsIfMissing("USR002", {
     can_register_sales: true,
     can_register_entries: true,
     can_register_exits: true,
@@ -39,7 +40,7 @@ function setupSpreadsheet() {
     can_export_own_day: true,
     can_request_corrections: true
   });
-  seedPermissions("USR003", {
+  seedPermissionsIfMissing("USR003", {
     can_register_sales: true,
     can_register_entries: false,
     can_register_exits: false,
@@ -53,16 +54,73 @@ function setupSpreadsheet() {
     can_request_corrections: true
   });
 
-  seedProduct("QG260504", "Queso grande", "Grande", "Quesos", 10);
-  seedProduct("QP260504", "Queso pequeño", "Pequeño", "Quesos", 12);
-  seedProduct("QM260504", "Queso mediano", "Mediano", "Quesos", 10);
-  seedProduct("CV260504", "Crema vaso", "Vaso", "Cremas", 18);
-  seedProduct("CB260504", "Crema bolsa", "Bolsa", "Cremas", 18);
+  seedProductIfMissing("QG260504", "Queso grande", "Grande", "Quesos", 10);
+  seedProductIfMissing("QP260504", "Queso pequeño", "Pequeño", "Quesos", 12);
+  seedProductIfMissing("QM260504", "Queso mediano", "Mediano", "Quesos", 10);
+  seedProductIfMissing("CV260504", "Crema vaso", "Vaso", "Cremas", 18);
+  seedProductIfMissing("CB260504", "Crema bolsa", "Bolsa", "Cremas", 18);
 
-  appendRow("Distributors", { ID: "ALIS001", Name: "Mazate", Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
-  appendRow("Distributors", { ID: "ALIS002", Name: "CAES", Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
+  seedDistributorIfMissing("ALIS001", "Mazate");
+  seedDistributorIfMissing("ALIS002", "CAES");
 
   return success({ spreadsheetId: spreadsheet.getId(), sheets: Object.keys(SHEETS) }, "Spreadsheet configurado.");
+}
+
+function resetSpreadsheetDangerously(payload) {
+  requireAdmin(payload);
+  if (payload.confirm !== "BORRAR TODO") throw new Error("Confirmación requerida para borrar todo.");
+  var setupPasswords = getSetupPasswords();
+  var spreadsheet = getSpreadsheet();
+  Object.keys(SHEETS).forEach(function(name) {
+    var sheet = spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
+    sheet.clear();
+    ensureHeaders(sheet, SHEETS[name]);
+    sheet.setFrozenRows(1);
+  });
+  return setupSpreadsheet(setupPasswords);
+}
+
+function ensureHeaders(sheet, headers) {
+  if (sheet.getLastRow() === 0 || sheet.getLastColumn() === 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    return;
+  }
+  var existing = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
+  if (!existing.some(function(header) { return header; })) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    return;
+  }
+  headers.forEach(function(header) {
+    if (existing.indexOf(header) === -1) {
+      sheet.getRange(1, sheet.getLastColumn() + 1).setValue(header);
+      existing.push(header);
+    }
+  });
+}
+
+function seedSettingIfMissing(key, value, description) {
+  if (getRows("Settings").some(function(row) { return row.Key === key; })) return;
+  appendRow("Settings", { Key: key, Value: value, Description: description, Updated_At: nowIso() });
+}
+
+function seedBranchIfMissing(id, name, type) {
+  if (getById("Branches", id)) return;
+  appendRow("Branches", { ID: id, Name: name, Type: type, Address: name, Active: true, Created_At: nowIso(), Updated_At: nowIso() });
+}
+
+function seedUserBranchIfMissing(userId, branchId) {
+  if (getRows("User_Branches").some(function(row) { return row.User_ID === userId && row.Branch_ID === branchId; })) return;
+  appendRow("User_Branches", { ID: nextId("User_Branches", "UB"), User_ID: userId, Branch_ID: branchId, Created_At: nowIso() });
+}
+
+function seedProductIfMissing(id, name, presentation, category, minStock) {
+  if (getById("Products", id)) return;
+  seedProduct(id, name, presentation, category, minStock);
+}
+
+function seedDistributorIfMissing(id, name) {
+  if (getById("Distributors", id)) return;
+  appendRow("Distributors", { ID: id, Name: name, Active: true, Special_Prices_JSON: "{}", Created_At: nowIso(), Updated_At: nowIso() });
 }
 
 function seedProduct(id, name, presentation, category, minStock) {
@@ -103,6 +161,20 @@ function seedUser(id, name, username, password, role) {
 
 function seedPermissions(userId, permissions) {
   Object.keys(permissions).forEach(function(permission) {
+    appendRow("Permissions", {
+      ID: nextId("Permissions", "PER"),
+      User_ID: userId,
+      Permission: permission,
+      Enabled: permissions[permission],
+      Updated_At: nowIso()
+    });
+  });
+}
+
+function seedPermissionsIfMissing(userId, permissions) {
+  var existing = getRows("Permissions").filter(function(row) { return row.User_ID === userId; }).map(function(row) { return row.Permission; });
+  Object.keys(permissions).forEach(function(permission) {
+    if (existing.indexOf(permission) > -1) return;
     appendRow("Permissions", {
       ID: nextId("Permissions", "PER"),
       User_ID: userId,

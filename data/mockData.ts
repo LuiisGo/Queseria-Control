@@ -179,7 +179,8 @@ export function buildDashboardData(): DashboardData {
       pendingCredits: demoCredits.reduce((sum, credit) => sum + credit.balance, 0),
       lowStockCount: demoInventory.filter((item) => item.quantity <= item.minStock).length,
       wasteTotal: demoWaste.reduce((sum, item) => sum + item.quantity, 0),
-      productionTotal: demoProduction.reduce((sum, item) => sum + item.quantity, 0)
+      productionTotal: demoProduction.reduce((sum, item) => sum + item.quantity, 0),
+      activeTransfers: demoTransfers.filter((transfer) => transfer.status !== "Cerrado").length
     },
     salesByBranch: [
       { name: "Central", total: 0 },

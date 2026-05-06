@@ -35,7 +35,8 @@ function runDailyNotificationChecks() {
   return checkExpirationNotifications();
 }
 
-function installDailyNotificationTrigger() {
+function installDailyNotificationTrigger(payload) {
+  if (payload) requireAdmin(payload);
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
     if (trigger.getHandlerFunction() === "runDailyNotificationChecks") ScriptApp.deleteTrigger(trigger);
   });
@@ -50,7 +51,7 @@ function daysUntil(dateValue) {
 }
 
 function getSettings(payload) {
-  requireActiveUser(payload);
+  requireAdmin(payload);
   return success(getRows("Settings").map(function(row) { return { key: row.Key, value: row.Value, description: row.Description, updatedAt: row.Updated_At }; }));
 }
 

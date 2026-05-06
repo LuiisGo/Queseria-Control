@@ -6,7 +6,7 @@ function listDistributors(payload) {
 }
 
 function createDistributor(payload) {
-  var user = requireActiveUser(payload);
+  var user = requireAdmin(payload);
   requireFields(payload, ["name"]);
   var row = { ID: nextId("Distributors", "ALIS"), Name: payload.name, Phone: payload.phone || "", Email: payload.email || "", Address: payload.address || "", Active: true, Special_Prices_JSON: JSON.stringify(payload.specialPrices || {}), Notes: payload.notes || "", Created_At: nowIso(), Updated_At: nowIso() };
   appendRow("Distributors", row);
@@ -15,7 +15,7 @@ function createDistributor(payload) {
 }
 
 function updateDistributor(payload) {
-  var user = requireActiveUser(payload);
+  var user = requireAdmin(payload);
   requireFields(payload, ["id"]);
   var old = getById("Distributors", payload.id);
   var row = updateRow("Distributors", payload.id, { Name: payload.name, Phone: payload.phone, Email: payload.email, Address: payload.address, Active: payload.active, Special_Prices_JSON: JSON.stringify(payload.specialPrices || {}), Notes: payload.notes, Updated_At: nowIso() });

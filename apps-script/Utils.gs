@@ -74,8 +74,20 @@ function getById(name, id) {
 }
 
 function nextId(sheetName, prefix) {
-  var count = getRows(sheetName).length + 1;
-  return prefix + String(count).padStart(3, "0");
+  var max = 0;
+  var width = 3;
+  var pattern = new RegExp("^" + escapeRegex(prefix) + "(\\d+)$");
+  getRows(sheetName).forEach(function(row) {
+    var match = String(row.ID || "").match(pattern);
+    if (!match) return;
+    max = Math.max(max, Number(match[1] || 0));
+    width = Math.max(width, match[1].length);
+  });
+  return prefix + String(max + 1).padStart(width, "0");
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function productPrefix(name) {

@@ -18,7 +18,7 @@ function sign(payload: string) {
 }
 
 export function createSessionToken(user: SessionUser) {
-  const payload = base64url(JSON.stringify({ user, exp: Date.now() + 1000 * 60 * 60 * 24 }));
+  const payload = base64url(JSON.stringify({ user, exp: Date.now() + 1000 * 60 * 60 * 4 }));
   return `${payload}.${sign(payload)}`;
 }
 
@@ -45,7 +45,7 @@ export function setSession(user: SessionUser) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24
+    maxAge: 60 * 60 * 4
   });
 }
 

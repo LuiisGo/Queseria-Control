@@ -10,8 +10,10 @@ type CacheEntry = {
 
 const cache = new Map<string, CacheEntry>();
 const LIST_TTL_MS = 8000;
+const CACHEABLE_ACTIONS = new Set(["LIST_PRODUCTS", "LIST_BRANCHES", "LIST_DISTRIBUTORS", "GET_PRICE_HISTORY"]);
 
 export async function cachedBackend<T>(action: string, payload: Record<string, unknown>) {
+  if (!CACHEABLE_ACTIONS.has(action)) return callBackend<T>(action, payload);
   const key = `${action}:${stableStringify(payload)}`;
   const hit = cache.get(key);
   if (hit && hit.expiresAt > Date.now()) return hit.response as ApiResponse<T>;

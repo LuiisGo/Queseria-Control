@@ -1,18 +1,20 @@
 function listInventory(payload) {
   var user = requireActiveUser(payload);
   var branches = user.Role === "Admin" ? null : userAssignedBranches(user.ID);
+  var lots = getRows("Inventory_Lots");
   var rows = getRows("Inventory").filter(function(row) {
     return !branches || branches.indexOf(row.Branch_ID) > -1;
   }).map(function(row) {
+    var rowLots = availableLotsFromRows(row.Product_ID, row.Branch_ID, lots);
     return {
       id: row.ID,
       productId: row.Product_ID,
       productName: productName(row.Product_ID),
       branchId: row.Branch_ID,
       branchName: branchName(row.Branch_ID),
-      quantity: Number(row.Quantity || 0),
+      quantity: sumLotQuantity(rowLots),
       minStock: Number(row.Min_Stock || 0),
-      lots: availableLots(row.Product_ID, row.Branch_ID).map(mapLot),
+      lots: rowLots.map(mapLot),
       updatedAt: row.Updated_At
     };
   });
@@ -28,7 +30,7 @@ function adjustInventory(payload) {
   if (!branch) throw new Error("Ubicación no encontrada.");
 
   var current = getInventoryRow(payload.productId, payload.branchId);
-  var oldQuantity = Number(current.Quantity || 0);
+  var oldQuantity = availableLotQuantity(payload.productId, payload.branchId);
   var newQuantity = Number(payload.newQuantity);
   var minStock = payload.minStock !== undefined && payload.minStock !== "" ? Number(payload.minStock) : Number(current.Min_Stock || 0);
   if (isNaN(newQuantity) || newQuantity < 0) throw new Error("Cantidad inválida.");
@@ -90,7 +92,11 @@ function getInventoryRow(productId, branchId) {
 }
 
 function availableLots(productId, branchId) {
-  return getRows("Inventory_Lots")
+  return availableLotsFromRows(productId, branchId, getRows("Inventory_Lots"));
+}
+
+function availableLotsFromRows(productId, branchId, rows) {
+  return rows
     .filter(function(lot) {
       return lot.Product_ID === productId && lot.Branch_ID === branchId && Number(lot.Quantity || 0) > 0;
     })
@@ -100,6 +106,16 @@ function availableLots(productId, branchId) {
       if (aDate !== bDate) return aDate - bDate;
       return String(a.Lot_Number || "").localeCompare(String(b.Lot_Number || ""));
     });
+}
+
+function sumLotQuantity(lots) {
+  return lots.reduce(function(sum, lot) {
+    return sum + Number(lot.Quantity || 0);
+  }, 0);
+}
+
+function availableLotQuantity(productId, branchId) {
+  return sumLotQuantity(availableLots(productId, branchId));
 }
 
 function mapLot(lot) {
@@ -162,14 +178,18 @@ function consumeLotsFifo(productId, branchId, quantity) {
 
 function changeStock(productId, branchId, delta, lotNumber, expirationDate, notes) {
   var row = getInventoryRow(productId, branchId);
-  var next = Number(row.Quantity || 0) + Number(delta);
+  var deltaNumber = Number(delta);
   var allowNegative = String(getSettingValue("allow_negative_stock", "false")) === "true";
+  var current = allowNegative ? Number(row.Quantity || 0) : availableLotQuantity(productId, branchId);
+  var next = current + deltaNumber;
   if (next < 0 && !allowNegative) throw new Error("Stock insuficiente para " + productName(productId) + " en " + branchName(branchId));
   var allocations = [];
-  if (delta < 0 && !allowNegative) allocations = consumeLotsFifo(productId, branchId, Math.abs(Number(delta)));
-  updateRow("Inventory", row.ID, { Quantity: next, Updated_At: nowIso() });
-  if (delta > 0 && lotNumber) {
-    addLotStock(productId, branchId, Number(delta), lotNumber, expirationDate, notes);
+  if (deltaNumber < 0 && !allowNegative) allocations = consumeLotsFifo(productId, branchId, Math.abs(deltaNumber));
+  if (deltaNumber > 0) {
+    var incomingLot = lotNumber || ("AUTO" + dateCode(nowIso()) + String(getRows("Inventory_Lots").length + 1).padStart(2, "0"));
+    addLotStock(productId, branchId, deltaNumber, incomingLot, expirationDate || addDaysDate(nowIso(), 16), notes);
   }
+  var quantity = allowNegative ? next : availableLotQuantity(productId, branchId);
+  updateRow("Inventory", row.ID, { Quantity: quantity, Updated_At: nowIso() });
   return allocations;
 }

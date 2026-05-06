@@ -8,6 +8,7 @@ function registerTransfer(payload) {
   if (!origin || !destination) throw new Error("Origen o destino inválido.");
   if (origin.Type !== "Tienda central") throw new Error("En MVP los envíos salen desde tienda central.");
   if (destination.Type === "Producción") throw new Error("Destino inválido para envío.");
+  validateTransferStock(payload.items, payload.originBranchId);
   var transfer = { ID: nextId("Transfers", "TRF"), Date: nowIso(), User_ID: user.ID, Origin_Branch_ID: payload.originBranchId, Destination_Branch_ID: payload.destinationBranchId, Status: "Registrado", Difference_Note: "", Notes: payload.notes || "" };
   appendRow("Transfers", transfer);
   var responseItems = [];
@@ -21,6 +22,24 @@ function registerTransfer(payload) {
   });
   logAudit(user, "REGISTER_TRANSFER", "Transfers", transfer.ID, null, payload, "");
   return success({ id: transfer.ID, date: transfer.Date, userId: transfer.User_ID, originBranchId: transfer.Origin_Branch_ID, originBranchName: branchName(transfer.Origin_Branch_ID), destinationBranchId: transfer.Destination_Branch_ID, destinationBranchName: branchName(transfer.Destination_Branch_ID), status: transfer.Status, notes: transfer.Notes, items: responseItems }, "Envío registrado.");
+}
+
+function validateTransferStock(items, branchId) {
+  if (!Array.isArray(items) || !items.length) throw new Error("El envío debe tener productos.");
+  var demand = {};
+  items.forEach(function(item) {
+    if (!item.productId) throw new Error("Producto obligatorio.");
+    var quantity = Number(item.quantity || 0);
+    if (isNaN(quantity) || quantity <= 0) throw new Error("Cantidad inválida para " + item.productId);
+    if (!getById("Products", item.productId)) throw new Error("Producto no encontrado: " + item.productId);
+    demand[item.productId] = Number(demand[item.productId] || 0) + quantity;
+  });
+  if (String(getSettingValue("allow_negative_stock", "false")) === "true") return;
+  Object.keys(demand).forEach(function(productId) {
+    if (availableLotQuantity(productId, branchId) < demand[productId]) {
+      throw new Error("Stock insuficiente para " + productName(productId) + " en " + branchName(branchId));
+    }
+  });
 }
 
 function listTransfers(payload) {

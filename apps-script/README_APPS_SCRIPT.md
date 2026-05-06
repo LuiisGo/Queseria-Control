@@ -31,7 +31,7 @@ Configura:
 5. Autoriza permisos.
 6. Despliega como Web App.
 
-`setupSpreadsheet()` es destructivo: limpia y recrea pestañas. Úsalo para inicializar, no para actualizar una hoja con datos reales.
+`setupSpreadsheet()` es seguro e idempotente: crea pestañas, agrega headers faltantes y siembra datos base solo cuando no existen. No borra registros reales. Para reiniciar una hoja existe la acción separada `RESET_SPREADSHEET_DANGEROUSLY`, que exige usuario Admin, confirmación exacta `BORRAR TODO` y valida las contraseñas iniciales antes de borrar.
 
 El setup inicial crea `Central`, `Agromarket 1`, productos SKU `QG260504` a `CB260504`, distribuidores `Mazate` y `CAES`, y usuarios iniciales `admin`, `tienda` y `agromarket1` usando las contraseñas guardadas en Script Properties.
 

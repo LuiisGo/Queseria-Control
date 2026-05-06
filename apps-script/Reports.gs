@@ -5,6 +5,7 @@ function getAdminDashboard(payload) {
   var inventory = listInventory(payload).data;
   var credits = listCredits(payload).data;
   var production = getRows("Production");
+  var transfers = getRows("Transfers");
   var waste = getRows("Waste");
   var total = sales.reduce(function(sum, row) { return sum + Number(row.Total || 0); }, 0);
   return success({
@@ -16,7 +17,8 @@ function getAdminDashboard(payload) {
       pendingCredits: credits.reduce(function(sum, row) { return sum + Number(row.balance || 0); }, 0),
       lowStockCount: inventory.filter(function(row) { return row.quantity <= row.minStock; }).length,
       wasteTotal: waste.reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0),
-      productionTotal: production.reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0)
+      productionTotal: production.reduce(function(sum, row) { return sum + Number(row.Quantity || 0); }, 0),
+      activeTransfers: transfers.filter(function(row) { return row.Status !== "Cerrado"; }).length
     },
     salesByBranch: aggregateSalesBy("Branch_ID", sales, branchName),
     salesByProduct: aggregateSaleUnitsByProduct(),

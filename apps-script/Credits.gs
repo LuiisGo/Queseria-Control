@@ -32,7 +32,7 @@ function updateCredit(payload) {
 }
 
 function registerCreditPayment(payload) {
-  var user = requireActiveUser(payload);
+  var user = requireAdmin(payload);
   requireFields(payload, ["creditId", "amount", "paymentMethod"]);
   var credit = getById("Credits", payload.creditId);
   if (!credit) throw new Error("Crédito no encontrado.");

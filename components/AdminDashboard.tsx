@@ -19,20 +19,34 @@ const adminActions = [
   { href: "/admin/reportes", label: "Exportar reportes", helper: "CSV y análisis", icon: ShoppingCart }
 ];
 
-export function AdminDashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
+type AdminDashboardProps = {
+  initialData?: DashboardData | null;
+  initialError?: string;
+};
+
+export function AdminDashboard({ initialData = null, initialError = "" }: AdminDashboardProps) {
+  const [data, setData] = useState<DashboardData | null>(initialData);
+  const [error, setError] = useState(initialError);
 
   useEffect(() => {
+    if (initialData) return;
+    if (initialError) {
+      toast.error(initialError);
+      return;
+    }
     fetch("/api/reports/dashboard", { cache: "no-store" })
       .then((response) => response.json())
       .then((json) => {
         if (json.success) setData(json.data);
-        else toast.error(json.error);
+        else {
+          setError(json.error);
+          toast.error(json.error);
+        }
       });
-  }, []);
+  }, [initialData, initialError]);
 
   if (!data) {
-    return <div className="panel p-8 text-center text-sm text-black/55">Cargando dashboard...</div>;
+    return <div className="panel p-8 text-center text-sm text-black/55">{error || "Cargando dashboard..."}</div>;
   }
 
   return (
@@ -67,7 +81,7 @@ export function AdminDashboard() {
         <StatCard label="Stock bajo" value={String(data.kpis.lowStockCount)} icon={AlertTriangle} />
         <StatCard label="Pérdidas" value={`${data.kpis.wasteTotal} uds`} icon={Boxes} />
         <StatCard label="Producción" value={`${data.kpis.productionTotal} uds`} icon={Wheat} />
-        <StatCard label="Envíos activos" value="1" icon={Truck} />
+        <StatCard label="Envíos activos" value={String(data.kpis.activeTransfers || 0)} icon={Truck} />
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">

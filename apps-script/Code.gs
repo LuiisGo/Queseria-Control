@@ -1,63 +1,81 @@
 function doPost(e) {
+  var lock = null;
+  var lockAcquired = false;
   try {
     var request = JSON.parse(e.postData.contents || "{}");
     validateSecret(request.secret);
     var action = request.action;
     var payload = request.payload || {};
-    var data;
 
-    switch (action) {
-      case "AUTH_LOGIN": data = authLogin(payload); break;
-      case "GET_ME": data = success(payload.currentUser || null); break;
-      case "CREATE_USER": data = createUser(payload); break;
-      case "UPDATE_USER": data = updateUser(payload); break;
-      case "DEACTIVATE_USER": data = deactivateUser(payload); break;
-      case "LIST_USERS": data = listUsers(payload); break;
-      case "CREATE_BRANCH": data = createBranch(payload); break;
-      case "UPDATE_BRANCH": data = updateBranch(payload); break;
-      case "LIST_BRANCHES": data = listBranches(payload); break;
-      case "CREATE_PRODUCT": data = createProduct(payload); break;
-      case "UPDATE_PRODUCT": data = updateProduct(payload); break;
-      case "LIST_PRODUCTS": data = listProducts(payload); break;
-      case "SET_PRICE": data = setPrice(payload); break;
-      case "GET_PRICE_HISTORY": data = getPriceHistory(payload); break;
-      case "LIST_INVENTORY": data = listInventory(payload); break;
-      case "ADJUST_INVENTORY": data = adjustInventory(payload); break;
-      case "REGISTER_PRODUCTION": data = registerProduction(payload); break;
-      case "UPDATE_PRODUCTION": data = updateProduction(payload); break;
-      case "LIST_PRODUCTION": data = listProduction(payload); break;
-      case "REGISTER_TRANSFER": data = registerTransfer(payload); break;
-      case "UPDATE_TRANSFER": data = updateTransfer(payload); break;
-      case "LIST_TRANSFERS": data = listTransfers(payload); break;
-      case "REGISTER_SALE": data = registerSale(payload); break;
-      case "UPDATE_SALE": data = updateSale(payload); break;
-      case "LIST_SALES": data = listSales(payload); break;
-      case "REGISTER_WASTE": data = registerWaste(payload); break;
-      case "UPDATE_WASTE": data = updateWaste(payload); break;
-      case "LIST_WASTE": data = listWaste(payload); break;
-      case "REGISTER_RETURN": data = registerReturn(payload); break;
-      case "CREATE_DISTRIBUTOR": data = createDistributor(payload); break;
-      case "UPDATE_DISTRIBUTOR": data = updateDistributor(payload); break;
-      case "LIST_DISTRIBUTORS": data = listDistributors(payload); break;
-      case "UPDATE_CREDIT": data = updateCredit(payload); break;
-      case "REGISTER_CREDIT_PAYMENT": data = registerCreditPayment(payload); break;
-      case "LIST_CREDITS": data = listCredits(payload); break;
-      case "GET_ADMIN_DASHBOARD": data = getAdminDashboard(payload); break;
-      case "GET_STORE_DAILY_SUMMARY": data = getStoreDailySummary(payload); break;
-      case "CREATE_CORRECTION_REQUEST": data = createCorrectionRequest(payload); break;
-      case "REVIEW_CORRECTION_REQUEST": data = reviewCorrectionRequest(payload); break;
-      case "REGISTER_DAILY_CLOSING": data = registerDailyClosing(payload); break;
-      case "EXPORT_REPORT_DATA": data = exportReportData(payload); break;
-      case "SETUP_SPREADSHEET": data = setupSpreadsheet(); break;
-      case "GET_SETTINGS": data = getSettings(payload); break;
-      case "SET_SETTINGS": data = setSettings(payload); break;
-      case "RUN_NOTIFICATION_CHECKS": data = success(runDailyNotificationChecks()); break;
-      case "INSTALL_NOTIFICATION_TRIGGER": data = installDailyNotificationTrigger(); break;
-      default: throw new Error("Acción no soportada: " + action);
+    if (actionRequiresLock(action)) {
+      lock = LockService.getScriptLock();
+      if (!lock.tryLock(15000)) throw new Error("El sistema está ocupado guardando otro movimiento. Intenta de nuevo en unos segundos.");
+      lockAcquired = true;
     }
 
-    return jsonResponse(data);
+    return jsonResponse(dispatchAction(action, payload));
   } catch (error) {
     return jsonResponse(failure(error.message));
+  } finally {
+    if (lock && lockAcquired) lock.releaseLock();
+  }
+}
+
+function actionRequiresLock(action) {
+  return !/^(LIST_|GET_|EXPORT_)/.test(String(action || ""));
+}
+
+function dispatchAction(action, payload) {
+  switch (action) {
+    case "AUTH_LOGIN": return authLogin(payload);
+    case "GET_ME": return success(payload.currentUser || null);
+    case "CREATE_USER": return createUser(payload);
+    case "UPDATE_USER": return updateUser(payload);
+    case "DEACTIVATE_USER": return deactivateUser(payload);
+    case "LIST_USERS": return listUsers(payload);
+    case "CREATE_BRANCH": return createBranch(payload);
+    case "UPDATE_BRANCH": return updateBranch(payload);
+    case "LIST_BRANCHES": return listBranches(payload);
+    case "CREATE_PRODUCT": return createProduct(payload);
+    case "UPDATE_PRODUCT": return updateProduct(payload);
+    case "LIST_PRODUCTS": return listProducts(payload);
+    case "SET_PRICE": return setPrice(payload);
+    case "GET_PRICE_HISTORY": return getPriceHistory(payload);
+    case "LIST_INVENTORY": return listInventory(payload);
+    case "ADJUST_INVENTORY": return adjustInventory(payload);
+    case "REGISTER_PRODUCTION": return registerProduction(payload);
+    case "UPDATE_PRODUCTION": return updateProduction(payload);
+    case "LIST_PRODUCTION": return listProduction(payload);
+    case "REGISTER_TRANSFER": return registerTransfer(payload);
+    case "UPDATE_TRANSFER": return updateTransfer(payload);
+    case "LIST_TRANSFERS": return listTransfers(payload);
+    case "REGISTER_SALE": return registerSale(payload);
+    case "UPDATE_SALE": return updateSale(payload);
+    case "LIST_SALES": return listSales(payload);
+    case "REGISTER_WASTE": return registerWaste(payload);
+    case "UPDATE_WASTE": return updateWaste(payload);
+    case "LIST_WASTE": return listWaste(payload);
+    case "REGISTER_RETURN": return registerReturn(payload);
+    case "CREATE_DISTRIBUTOR": return createDistributor(payload);
+    case "UPDATE_DISTRIBUTOR": return updateDistributor(payload);
+    case "LIST_DISTRIBUTORS": return listDistributors(payload);
+    case "UPDATE_CREDIT": return updateCredit(payload);
+    case "REGISTER_CREDIT_PAYMENT": return registerCreditPayment(payload);
+    case "LIST_CREDITS": return listCredits(payload);
+    case "GET_ADMIN_DASHBOARD": return getAdminDashboard(payload);
+    case "GET_STORE_DAILY_SUMMARY": return getStoreDailySummary(payload);
+    case "CREATE_CORRECTION_REQUEST": return createCorrectionRequest(payload);
+    case "REVIEW_CORRECTION_REQUEST": return reviewCorrectionRequest(payload);
+    case "REGISTER_DAILY_CLOSING": return registerDailyClosing(payload);
+    case "EXPORT_REPORT_DATA": return exportReportData(payload);
+    case "SETUP_SPREADSHEET": return setupSpreadsheet();
+    case "RESET_SPREADSHEET_DANGEROUSLY": return resetSpreadsheetDangerously(payload);
+    case "GET_SETTINGS": return getSettings(payload);
+    case "SET_SETTINGS": return setSettings(payload);
+    case "RUN_NOTIFICATION_CHECKS":
+      requireAdmin(payload);
+      return success(runDailyNotificationChecks());
+    case "INSTALL_NOTIFICATION_TRIGGER": return installDailyNotificationTrigger(payload);
+    default: throw new Error("Acción no soportada: " + action);
   }
 }

@@ -90,7 +90,7 @@ En Apps Script:
 3. Haz clic en `Run`.
 4. Acepta permisos.
 
-Importante: `setupSpreadsheet()` limpia y recrea las pestañas. Úsalo al inicio. No lo corras después de tener datos reales, salvo que quieras reiniciar la base.
+Importante: `setupSpreadsheet()` es seguro e idempotente. Puedes ejecutarlo para crear pestañas o headers faltantes; no borra registros reales. Si alguna vez necesitas reiniciar todo, usa únicamente la acción `RESET_SPREADSHEET_DANGEROUSLY` con confirmación exacta `BORRAR TODO`.
 
 El setup crea:
 
@@ -215,4 +215,5 @@ NEXT_PUBLIC_DEMO_MODE=false
 - Los movimientos de salida usan FIFO por vencimiento de lote.
 - Las notificaciones de vencimiento se crean cuando faltan 2 días o menos para el vencimiento del lote.
 - Para revisión automática diaria, en Apps Script ejecuta una vez `installDailyNotificationTrigger()`. Esto instala un trigger diario a las 7:00 para revisar vencimientos.
-- `setupSpreadsheet()` es destructivo porque reinicia pestañas.
+- `setupSpreadsheet()` no borra datos; solo crea estructura faltante y datos base si no existen.
+- El reinicio total quedó separado en `RESET_SPREADSHEET_DANGEROUSLY` para evitar borrados accidentales.
